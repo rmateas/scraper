@@ -3,8 +3,7 @@ import { getAllCardsFromDealer } from './utils/getVehCards.js';
 
 export const getCards = async (page) => {
 
-  for(let sellerData of await getAPI('https://as-webs-api.azurewebsites.net/seller/getprod')){
-    let seller = sellerData[0];
+  for(let seller of await getAPI('https://as-webs-api.azurewebsites.net/seller/getprod')){
     let cards = {
       sellerId:seller.sellerId,
       sellerTemplate:seller.sellerTemplate,
