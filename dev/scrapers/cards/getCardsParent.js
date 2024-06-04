@@ -7,7 +7,7 @@ import puppeteer from "puppeteer-extra";
 
 import { startBrowsers } from '../../browser/browser.js';
 import { getCards } from './getCardsChild.js';
-import { initializeLogger, logger } from '../../utils/logger.js';
+// import { logger } from '../../utils/logger.js';
 
 (async () => {
   //Parent process
@@ -36,7 +36,6 @@ import { initializeLogger, logger } from '../../utils/logger.js';
     console.log('START');
     let workers = [];
     let workersTotal = cpus().length;
-    initializeLogger(workersTotal);
     browsers = await startBrowsers(workersTotal*2);
     
     let pickBrowser = async (worker) => {

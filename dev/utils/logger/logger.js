@@ -110,7 +110,7 @@ export  const readLog = async (fileName = null) => {
 /**
  * Get level name
  * @param {string} level 
- * @returns 
+ * @returns string
  */
 const getLevelName = level => level && config.levels.hasOwnProperty(level) ? level : 'info';
 
