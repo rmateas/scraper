@@ -26,7 +26,7 @@ const postAPI = async (path, info) => {
     });
   } catch (e) {
     await setTimeout(5000);
-    await postAPI(info);
+    await postAPI(path, info);
   }
 }
 
