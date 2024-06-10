@@ -1,6 +1,8 @@
 import comVehMakes from './comMakes.json' with { type: "json" };
+import { log } from '../../../utils/logger/logger.js';
 
-export const getVehCardUrls = async (page) => {
+export const getVehCardUrls = async (page, worker) => {
+  log({level:'debug', file, func:'getVehCardUrls', worker, message:'START'});
   let vehCardUrlArr = [];
 
   let allUrls = [...new Set(await page.$$eval('a', urls => urls.map(url => url.href)))];
@@ -28,5 +30,6 @@ export const getVehCardUrls = async (page) => {
       }
     }
   }
+  log({level:'debug', file, func:'getVehCardUrls', worker, message:'SUCCESS'});
   return vehCardUrlArr;
 }

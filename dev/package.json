@@ -4,7 +4,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "cards": "node --no-warnings=ExperimentalWarning scrapers/cards/getCardsParent.js"
+    "cards": "node --no-warnings=ExperimentalWarning scrapers/parentProcess.js cards",
+    "sinfo": "node --no-warnings=ExperimentalWarning scrapers/parentProcess.js sinfo",
+    "vinfo": "node --no-warnings=ExperimentalWarning scrapers/parentProcess.js vinfo",
+    "pag": "node --no-warnings=ExperimentalWarning scrapers/parentProcess.js pag"
   },
   "author": "",
   "license": "ISC",

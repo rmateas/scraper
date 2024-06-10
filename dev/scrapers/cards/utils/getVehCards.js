@@ -1,7 +1,11 @@
 import { pageNav } from '../../../utils/navigation.js';
 import { getVehCardUrls } from './getVehCardUrls.js';
+import { log } from '../../../utils/logger/logger.js';
 
-export const getAllCardsFromDealer =  async (page, seller, isNewInv) => {
+let file = 'getVehCards.js';
+
+export const getCardsFromDealer =  async (page, worker, seller, isNewInv) => {
+  log({level:'debug', file, func:'getCardsFromDealer', worker, message:'START'});
   let invUrl = isNewInv ? seller.pageInvUrlNew : seller.pageInvUrlUsed;
   let startIndex = seller.pageStartIndex;
   let vehCardArr = [];
@@ -15,20 +19,23 @@ export const getAllCardsFromDealer =  async (page, seller, isNewInv) => {
   let getPageHeight = async () => await page.evaluate(() => {return {current: document.documentElement.clientHeight + window.scrollY,total: window.document.body.scrollHeight}});
 
   let getCardsUni = async () => {
+    log({level:'debug', file, func:'getCardsUni', worker, message:'START'});
     let oldUrlLen = 0, newUrlLen = 0;
     do {
       oldUrlLen = vehCardArr.length;
       startIndex += seller.pageIterator;
       await pageNav(page, invUrl.replace(/~~~/, startIndex));
       await scrollToPageBottom();
-      vehCardArr.push.apply(vehCardArr, (await getVehCardUrls(page)));
+      vehCardArr.push.apply(vehCardArr, (await getVehCardUrls(page, worker)));
       vehCardArr = [...new Set(vehCardArr)];
       newUrlLen = vehCardArr.length;
       vehCardsPerPageArr.push(newUrlLen - oldUrlLen);
     } while (oldUrlLen != newUrlLen);
+    log({level:'debug', file, func:'getCardsUni', worker, message:'SUCCESS'});
   }
 
   let getCardsTemp3 = async () => {
+    log({level:'debug', file, func:'getCardsTemp3', worker, message:'START'});
     try {
       //Site changes pages using function execution rather than url navigation
       await page.evaluate(() => {
@@ -38,7 +45,7 @@ export const getAllCardsFromDealer =  async (page, seller, isNewInv) => {
       });
       await page.waitForTimeout(2000);
     } catch (e) {
-      // ********************************
+      log({level:'error', file, func:'getCardsTemp3', worker, message:'ERROR CHANGING PAGES', error:e});
     }
     //add check to make sure more cards were loaded in, for cases where the network hangs
     let nextPageObj = {value: 2};
@@ -47,7 +54,7 @@ export const getAllCardsFromDealer =  async (page, seller, isNewInv) => {
     try {
       while (!(await page.$('[aria-label="Next"].disabled'))) {
         oldUrlLeng = vehCardArr.length;
-        vehCardArr.push.apply(vehCardArr, await getVehCardUrls(page));
+        vehCardArr.push.apply(vehCardArr, await getVehCardUrls(page, worker));
         vehCardArr = [...new Set(vehCardArr)];
         vehCardsPerPageArr.push(vehCardArr.length - oldUrlLeng);
         await page.evaluate(nextPageObj => {window.changePage(nextPageObj)}, nextPageObj);
@@ -55,9 +62,10 @@ export const getAllCardsFromDealer =  async (page, seller, isNewInv) => {
         nextPageObj.value++;
       }
     } catch (e) {
-      // *******************************************
+      log({level:'error', file, func:'getCardsTemp3', worker, message:'ERROR FINDING THE END OF PAGINATION', error:e});
     }
-    vehCardArr.push.apply(vehCardArr, await getVehCardUrls(page))
+    vehCardArr.push.apply(vehCardArr, await getVehCardUrls(page, worker));
+    log({level:'debug', file, func:'getCardsTemp3', worker, message:'SUCCESS'});
     return [...new Set(vehCardArr)];
   }
 
@@ -65,7 +73,7 @@ export const getAllCardsFromDealer =  async (page, seller, isNewInv) => {
   //***** Execution *****//
   await pageNav(page, invUrl.replace(/~~~/, startIndex));
   await scrollToPageBottom();
-  vehCardArr.push.apply(vehCardArr, await getVehCardUrls(page));
+  vehCardArr.push.apply(vehCardArr, await getVehCardUrls(page, worker));
   vehCardsPerPageArr.push(vehCardArr.length);
 
   if(seller.sellerTemplate == 'template3'){
@@ -81,9 +89,10 @@ export const getAllCardsFromDealer =  async (page, seller, isNewInv) => {
           await page.waitForTimeout(2000);
         } while (pageHeight.current <= pageHeight.total && (pageHeight.total - pageHeight.current) > 40);
       } catch (e) {
-        throw new Error(`Error with scroll events | getVehCards.js | ${e}`);
+        log({level:'error', file, func:'getCardsFromDealer', worker, message:'ERROR WITH SCROLL EVENTS', error:e});
+        throw new Error();
       }
-      vehCardArr.push.apply(vehCardArr, await getVehCardUrls(page));
+      vehCardArr.push.apply(vehCardArr, await getVehCardUrls(page, worker));
       vehCardArr = [...new Set(vehCardArr)];
       if(oldCardsLength == vehCardArr.length){
         await getCardsUni();
@@ -94,5 +103,6 @@ export const getAllCardsFromDealer =  async (page, seller, isNewInv) => {
       await getCardsUni();
     }
   }
+  log({level:'debug', file, func:'getCardsFromDealer', worker, message:'SUCCESS'});
   return {vehCardArr, vehCardsPerPageArr};
 }

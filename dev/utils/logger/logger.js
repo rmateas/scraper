@@ -12,6 +12,13 @@ import config from './config.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /**
+ * Adds padding tp logs for uniformity
+ * @param {string} padStr 
+ * @returns string
+ */
+let addPadding = (padStr, pad = 20) => padStr.padStart(padStr.length + Math.ceil((pad - padStr.length)/2)).padEnd(padStr.length + (pad - padStr.length));
+
+/**
  * Main Logging Function
  * @param {object} options 
  * OBJECT { level, message, error }
@@ -21,9 +28,12 @@ export const log = (options) => {
   const levelName = getLevelName(options.level);
   let message = options.message ?? 'Unidentified Error';
   const error = options.err ?? null;
+  const file = options.file ?? '*****SPECIFY FILE*****';
+  const func = options.func ?? '*****SPECIFY FUNC*****';
+  const worker = options.worker ?? 0;
 
   //Always log to the console
-  writeToConsole(levelName, message, error);
+  writeToConsole(levelName, file, func, worker, message, error);
 
   if(config.levels[levelName].writeToDB){
     writeToDB(levelName, message);
@@ -37,7 +47,7 @@ export const log = (options) => {
  * @param {string} message 
  * @param {Error|null} error 
  */
-const writeToConsole = (levelName, message, error = null) => {
+const writeToConsole = (levelName, file, func, worker, message, error = null) => {
 
   const level = config.levels[levelName];
   let chalkFunction = level.color.includes('#') ? chalk.hex(level.color)
@@ -45,7 +55,7 @@ const writeToConsole = (levelName, message, error = null) => {
     : chalk[level.color];
 
   message = error ? `${chalkFunction(`${error.message} \n ${error.stack}`)}` : message;
-  const header = `[${levelName.toUpperCase()}][${getFormattedCurrentDate()}]`;
+  const header = `[${addPadding(worker.toString(), 2)}][${addPadding(levelName.toUpperCase(), 10)}][${getFormattedCurrentDate()}][${addPadding(file)}][${addPadding(func)}]`;
 
   console.log(`${chalkFunction(header)}: ${chalkFunction(message)}`);
 }
@@ -203,10 +213,6 @@ export const fatal = (error) => {
     log({level:'fatal', error})
   }
 }
-
-
-
-log({message:'Hello World'});
 
 
 
