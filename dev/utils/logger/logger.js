@@ -5,8 +5,6 @@ import moment from 'moment';
 import config from './config.js';
 import { postAPI } from '../apiUtils.js';
 
-//Needed to make __dirname for absolute path work
-// const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /**
  * Adds padding tp logs for uniformity
@@ -66,11 +64,29 @@ const writeToDB = async (scraper, level, message, error) => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+// FUNCTIONS FOR READING AND WRITING LOG FILES
+
 // Imports necessary for reading and writing to file
 // import path from 'path';
 // import { fileURLToPath } from 'url';
 // import readline from 'readline';
 // import { existsSync, mkdirSync, appendFileSync, createReadStream } from 'fs';
+
+// Needed to make __dirname for absolute path work
+// const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /**
  * Write the formatted message to a file
@@ -128,102 +144,6 @@ const writeToDB = async (scraper, level, message, error) => {
 //   });
 // }
 
-/**
- * Get level name
- * @param {string} level 
- * @returns string
- */
-const getLevelName = level => level && config.levels.hasOwnProperty(level) ? level : 'info';
-
-/**
- * Get formatted date
- * @returns string
- */
-const getFormattedCurrentDate = () => moment(new Date()).format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS);
-
-/**
- * Helper function for printing ACCESS level logs
- * @param {string} message 
- */
-export const access = (message) => {
-  log({level:'access', message});
-}
-
-/**
- * Helper function for printing WARN level logs
- * @param {string} message 
- */
-export const warn = (message) => {
-  log({level:'warn', message});
-}
-
-/**
- * Helper function for printing DEBUG level logs
- * @param {string} message 
- */
-export const debug = (message) => {
-  log({level:'debug', message});
-}
-
-/**
- * Helper function for printing SYSTEM level logs
- * @param {string} message 
- */
-export const system = (message) => {
-  log({level:'system', message});
-}
-
-/**
- * Helper function for printing DATABASE level logs
- * @param {string} message 
- */
-export const database = (message) => {
-  log({level:'database', message});
-}
-
-/**
- * Helper function for printing event level logs
- * @param {string} message 
- */
-export const event = (message) => {
-  log({level:'event', message});
-}
-
-/**
- * Helper function for printing INFO level logs
- * @param {string} message 
- */
-export const info = (message) => {
-  log({level:'info', message});
-}
-
-/**
- * Helper function for printing ERROR level logs
- * @param {string} message 
- */
-export const error = (error) => {
-
-  if(typeof error === 'string'){
-    log({level:'error', message:error});
-  } else {
-    log({level:'error', error});
-  }
-
-
-}
-
-/**
- * Helper function for printing FATAL level logs
- * @param {string} message 
- */
-export const fatal = (error) => {
-
-  if(typeof error === 'string'){
-    log({level:'fatal', message:error});
-  } else {
-    log({level:'fatal', error})
-  }
-}
 
 
 
@@ -237,6 +157,113 @@ export const fatal = (error) => {
 
 
 
+// HELPER FUNCTIONS THAT CAN BE BUILT OUT FOR BETTER FUNCTIONALITY BUT NOT REALLY NECESSARY
+
+// /**
+//  * Get level name
+//  * @param {string} level 
+//  * @returns string
+//  */
+// const getLevelName = level => level && config.levels.hasOwnProperty(level) ? level : 'info';
+
+// /**
+//  * Get formatted date
+//  * @returns string
+//  */
+// const getFormattedCurrentDate = () => moment(new Date()).format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS);
+
+// /**
+//  * Helper function for printing ACCESS level logs
+//  * @param {string} message 
+//  */
+// export const access = (message) => {
+//   log({level:'access', message});
+// }
+
+// /**
+//  * Helper function for printing WARN level logs
+//  * @param {string} message 
+//  */
+// export const warn = (message) => {
+//   log({level:'warn', message});
+// }
+
+// /**
+//  * Helper function for printing DEBUG level logs
+//  * @param {string} message 
+//  */
+// export const debug = (message) => {
+//   log({level:'debug', message});
+// }
+
+// /**
+//  * Helper function for printing SYSTEM level logs
+//  * @param {string} message 
+//  */
+// export const system = (message) => {
+//   log({level:'system', message});
+// }
+
+// /**
+//  * Helper function for printing DATABASE level logs
+//  * @param {string} message 
+//  */
+// export const database = (message) => {
+//   log({level:'database', message});
+// }
+
+// /**
+//  * Helper function for printing event level logs
+//  * @param {string} message 
+//  */
+// export const event = (message) => {
+//   log({level:'event', message});
+// }
+
+// /**
+//  * Helper function for printing INFO level logs
+//  * @param {string} message 
+//  */
+// export const info = (message) => {
+//   log({level:'info', message});
+// }
+
+// /**
+//  * Helper function for printing ERROR level logs
+//  * @param {string} message 
+//  */
+// export const error = (error) => {
+
+//   if(typeof error === 'string'){
+//     log({level:'error', message:error});
+//   } else {
+//     log({level:'error', error});
+//   }
+
+
+// }
+
+// /**
+//  * Helper function for printing FATAL level logs
+//  * @param {string} message 
+//  */
+// export const fatal = (error) => {
+
+//   if(typeof error === 'string'){
+//     log({level:'fatal', message:error});
+//   } else {
+//     log({level:'fatal', error})
+//   }
+// }
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -246,6 +273,11 @@ export const fatal = (error) => {
 
 
 
+
+
+
+
+// ATTEMPTED USES AT HAVING A CLEAN AND REFRESHABLE TABLE INPUT
 
 // import readline from 'readline';
 
@@ -268,8 +300,6 @@ export const fatal = (error) => {
 //   readline.cursorTo(process.stdout, -1);
 //   process.stdout.write(table.toString())
 // }, 1000)
-
-
 
 
 
