@@ -14,6 +14,19 @@ import { postAPI } from '../apiUtils.js';
 let addPadding = (padStr, pad = 20) => padStr.padStart(padStr.length + Math.ceil((pad - padStr.length)/2)).padEnd(padStr.length + (pad - padStr.length));
 
 /**
+ * Get level name
+ * @param {string} level 
+ * @returns string
+ */
+const getLevelName = level => level && config.levels.hasOwnProperty(level) ? level : 'debug';
+
+/**
+ * Get formatted date
+ * @returns string
+ */
+const getFormattedCurrentDate = () => moment(new Date()).format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS);
+
+/**
  * Main Logging Function
  * @param {object} options 
  * OBJECT { level, message, error }
@@ -57,8 +70,10 @@ const writeToConsole = (levelName, file, func, worker, message, obj, error = nul
 }
 
 const writeToDB = async (scraper, level, message, error) => {
-  // postAPI(`https://as-webs-api.azurewebsites.net/errors/posterror`, JSON.stringify({scraper, level, message, error}));
-  await postAPI(`http://localhost:8080/error/posterror`, JSON.stringify({scraper, level, message, error:error.stack, date: new Date()}))
+  // Live API
+  await postAPI(`https://as-webs-api.azurewebsites.net/errors/posterror`, JSON.stringify({scraper, level, message, error:error.stack, date: getFormattedCurrentDate()}));
+  // Local
+  // await postAPI(`http://localhost:8080/error/posterror`, JSON.stringify({scraper, level, message, error:error.stack, date: getFormattedCurrentDate()}))
 }
 
 
@@ -158,19 +173,6 @@ const writeToDB = async (scraper, level, message, error) => {
 
 
 // HELPER FUNCTIONS THAT CAN BE BUILT OUT FOR BETTER FUNCTIONALITY BUT NOT REALLY NECESSARY
-
-// /**
-//  * Get level name
-//  * @param {string} level 
-//  * @returns string
-//  */
-// const getLevelName = level => level && config.levels.hasOwnProperty(level) ? level : 'info';
-
-// /**
-//  * Get formatted date
-//  * @returns string
-//  */
-// const getFormattedCurrentDate = () => moment(new Date()).format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS);
 
 // /**
 //  * Helper function for printing ACCESS level logs
