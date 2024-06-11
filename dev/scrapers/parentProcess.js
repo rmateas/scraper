@@ -111,8 +111,8 @@ const file = 'startScraper.js';
       log({level:'debug', file, func:'workerExit', worker:workerIndex, message:'WORKER EXITING'});
       browsers[workers[workerIndex].browNum].working = 0;
       if(code == 10) {
-        log({level:'debug', file, func:'workerExit', worker:workerIndex, message:'WORKER EXITED WITH BROWSER CONNECTION ERROR'});
         //browser connection error
+        log({level:'debug', file, func:'workerExit', worker:workerIndex, message:'WORKER EXITED WITH BROWSER CONNECTION ERROR'});
       } else if(code == 8000) {
         log({level:'debug', file, func:'workerExit', worker:workerIndex, message:'WORKER EXITED WITH ERROR'});
         workerIndex = undefined;
