@@ -3,7 +3,7 @@ import { getCardsFromDealer } from './utils/getVehCards.js';
 import { log } from '../../utils/logger/logger.js';
 
 export const getCards = async (page, worker) => {
-  let file = 'getCardsChild.js';
+  let file = 'getCards.js';
   log({level:'debug', file, func:'getCards', worker, message:'START'});
   for(let seller of await getAPI('https://as-webs-api.azurewebsites.net/seller/getprod')){
     let cards = {

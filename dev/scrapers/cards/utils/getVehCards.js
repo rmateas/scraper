@@ -11,10 +11,12 @@ export const getCardsFromDealer =  async (page, worker, seller, isNewInv) => {
   let vehCardArr = [];
   let vehCardsPerPageArr = [];
 
-  let scrollToPageBottom = async () => {
-    await page.evaluate(() => {window.scrollTo(0, window.document.body.scrollHeight)});
-    await page.waitForTimeout(2000);
-  }
+  // TEMPORARY COMMENT: Had to comment out the scroll events(scrollToPageBottom()) as they are handled differnetly in headless vs. headfull mode which interfere with docker abilities
+
+  // let scrollToPageBottom = async () => {
+  //   await page.evaluate(() => {window.scrollTo(0, window.document.body.scrollHeight)});
+  //   await page.waitForTimeout(2000);
+  // }
 
   let getPageHeight = async () => await page.evaluate(() => {return {current: document.documentElement.clientHeight + window.scrollY,total: window.document.body.scrollHeight}});
 
@@ -25,7 +27,7 @@ export const getCardsFromDealer =  async (page, worker, seller, isNewInv) => {
       oldUrlLen = vehCardArr.length;
       startIndex += seller.pageIterator;
       await pageNav(page, invUrl.replace(/~~~/, startIndex));
-      await scrollToPageBottom();
+      // await scrollToPageBottom();
       vehCardArr.push.apply(vehCardArr, (await getVehCardUrls(page, worker)));
       vehCardArr = [...new Set(vehCardArr)];
       newUrlLen = vehCardArr.length;
@@ -72,36 +74,36 @@ export const getCardsFromDealer =  async (page, worker, seller, isNewInv) => {
 
   //***** Execution *****//
   await pageNav(page, invUrl.replace(/~~~/, startIndex));
-  await scrollToPageBottom();
+  // await scrollToPageBottom();
   vehCardArr.push.apply(vehCardArr, await getVehCardUrls(page, worker));
   vehCardsPerPageArr.push(vehCardArr.length);
 
   if(seller.sellerTemplate == 'template3'){
     await getCardsTemp3();
   } else {
-    let pageHeight = await getPageHeight();
-    if(pageHeight.current != pageHeight.total){
-      let oldCardsLength = vehCardArr.length;
-      try {
-        do {
-          await scrollToPageBottom();
-          pageHeight = await getPageHeight();
-          await page.waitForTimeout(2000);
-        } while (pageHeight.current <= pageHeight.total && (pageHeight.total - pageHeight.current) > 40);
-      } catch (e) {
-        log({level:'error', file, func:'getCardsFromDealer', worker, message:'ERROR WITH SCROLL EVENTS', error:e});
-        throw new Error();
-      }
-      vehCardArr.push.apply(vehCardArr, await getVehCardUrls(page, worker));
-      vehCardArr = [...new Set(vehCardArr)];
-      if(oldCardsLength == vehCardArr.length){
-        await getCardsUni();
-      } else {
-        vehCardsPerPageArr[0] = vehCardArr.length;
-      }
-    } else {
+    // let pageHeight = await getPageHeight();
+    // if(pageHeight.current != pageHeight.total){
+    //   let oldCardsLength = vehCardArr.length;
+    //   try {
+    //     do {
+    //       await scrollToPageBottom();
+    //       pageHeight = await getPageHeight();
+    //       await page.waitForTimeout(2000);
+    //     } while (pageHeight.current <= pageHeight.total && (pageHeight.total - pageHeight.current) > 40);
+    //   } catch (e) {
+    //     log({level:'error', file, func:'getCardsFromDealer', worker, message:'ERROR WITH SCROLL EVENTS', error:e});
+    //     throw new Error();
+    //   }
+    //   vehCardArr.push.apply(vehCardArr, await getVehCardUrls(page, worker));
+    //   vehCardArr = [...new Set(vehCardArr)];
+    //   if(oldCardsLength == vehCardArr.length){
+    //     await getCardsUni();
+    //   } else {
+    //     vehCardsPerPageArr[0] = vehCardArr.length;
+    //   }
+    // } else {
       await getCardsUni();
-    }
+    // }
   }
   log({level:'debug', file, func:'getCardsFromDealer', worker, message:'SUCCESS'});
   return {vehCardArr, vehCardsPerPageArr};

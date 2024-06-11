@@ -1,6 +1,8 @@
 import comVehMakes from './comMakes.json' with { type: "json" };
 import { log } from '../../../utils/logger/logger.js';
 
+const file = 'getVehCardUrls.js';
+
 export const getVehCardUrls = async (page, worker) => {
   log({level:'debug', file, func:'getVehCardUrls', worker, message:'START'});
   let vehCardUrlArr = [];

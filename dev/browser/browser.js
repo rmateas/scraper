@@ -5,21 +5,47 @@ puppeteer.use(StealthPlugin());
 import { log } from '../utils/logger/logger.js';
 import proxies from './proxies.json' with { type: "json"};
 
-export const startBrowsers = async (browNum) => {
-  log({file:'browser.js', func:'startBrowsers', message:'STARTING BROWSERS'});
-  let browsers = [];
+const file = 'browser.js';
 
-  for(let i = 0; i < browNum; i++){
-    let browser
+const shuffle = (a) => {
+  let m = a.length, t, i;
+  while (m) {
+    i = Math.floor(Math.random() * m--);
+    t = a[m];
+    a[m] = a[i];
+    a[i] = t;
+  }
+  return a;
+}
+
+export const startBrowsers = async (browNum) => {
+  log({file, func:'startBrowsers', message:'STARTING BROWSERS'});
+  if(browNum > proxies.length){
+    log({file, func:'startBrowsers', message:'NOT ENOUGH PROXIES AVAILABLE, ADJUSTING'});
+    browNum = proxies.length;
+  }
+
+  let browsers = [];
+  let shuffledProxies = shuffle(proxies);
+
+  while(browsers.length != browNum){
+    if(!shuffledProxies.length){
+      break;
+    }
+    let browser;
     try {
       //args options | //https://peter.sh/experiments/chromium-command-line-switches/
       browser = await puppeteer.launch({
-        headless:false,
-        //possiblity that headless mode is acting differently than headful
+        // DEV
+        // headless:false,
+        
+        // PROD
+        headless:'new',
+        
         ignoreHTTPSErrors: true,
         args: [
           '--mute-audio',
-          // `--no-sandbox`, // creates chrome for testing zombies when closing browsers
+          `--no-sandbox`, // creates chrome for testing zombies when closing browsers but is necessary for docker build
           '--disable-setuid-sandbox',
           '--aggressive-cache-discard',
           '--disable-gpu',
@@ -43,23 +69,22 @@ export const startBrowsers = async (browNum) => {
           '--media-cache-size=0',
           '--disk-cache-size=0',
           `--incognito`,
-          `--proxy-server=${proxies[i]}`
+          `--proxy-server=${shuffledProxies.pop()}`
         ]
       });
     } catch (e) {
-      log({file:'browser.js', func:'startBrowsers', level:'fatal', error:`ERROR LAUNCHING BROWSER\n ${e}`});
-      process.exit();
+      await log({file, func:'startBrowsers', level:'fatal', message: 'ERROR LAUNCHING BROWSER', error:e});
+      continue;
     }
     
     try {
       let page = (await browser.pages())[0];
       await page.authenticate({'username':process.env.PUSER,'password':process.env.PPASS});
     } catch (e) {
-      log({file:'browser.js', func:'browserAuth', level:'fatal', error:`AUTH ERROR\n ${e}`});
-      process.exit();
+      await log({file, func:'browserAuth', level:'fatal', message:'AUTH ERROR', error:e});
+      continue;
     }
 
-    
     let endpoint = browser.wsEndpoint();
     browsers[i] = {
       browserNum:i,
@@ -69,6 +94,7 @@ export const startBrowsers = async (browNum) => {
       conErr:0
     }
   }
-  log({file:'browser.js', func:'startBrowsers', message:`BROWSERS STARTED: ${browsers.length}`});
+
+  log({file, func:'startBrowsers', message:`BROWSERS STARTED: ${browsers.length}`});
   return browsers;
 };

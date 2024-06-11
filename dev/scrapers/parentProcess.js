@@ -17,6 +17,7 @@ const file = 'startScraper.js';
 (async () => {
   //Parent process
   if(cluster.isPrimary) {
+    console.log('PARENT START');
     log({file, func:'main', level: 'info', message:'CARDS SCRAPER START'});
     let browsers = [];
     let endSignalHandler = async () =>  {
@@ -40,13 +41,16 @@ const file = 'startScraper.js';
     process.on('SIGQUIT', endSignalHandler);
 
     //PROD
-    // let workers = Array.apply(undefined, Array(cpus().length)).map(()=>{});
+    let workers = Array.apply(undefined, Array(cpus().length)).map(()=>{});
 
     //DEV
-    let workers = [undefined];
+    // let workers = [undefined];
 
-
-    browsers = await startBrowsers(workers.length*2);
+    let browserNum = workers.length*2
+    browsers = await startBrowsers(browserNum);
+    if(browsers.length != browserNum){
+      workers.slice(browserNum - browsers.length);
+    }
   
     let pickBrowser = async (worker) => {
       log({level:'debug', file, func:'pickBrowser', worker, message:'START'});
@@ -122,8 +126,8 @@ const file = 'startScraper.js';
 
   } else if (cluster.isWorker) {
     process.on('message', async msg => {
-      process.on('unhandledRejection', (e) => {log({level:'error', file, func:'unhandledRejection', error:e})});
-      process.on('uncaughtException', (e) => {log({level:'error', file, func:'uncaughtException', error:e})});
+      process.on('unhandledRejection', (e) => {log({level:'error', file, func:'unhandledRejection', message:'unhandledRejection', error:e})});
+      process.on('uncaughtException', (e) => {log({level:'error', file, func:'uncaughtException', message:'uncaughtException', error:e})});
       let {worker, browserWSEndpoint} = msg;
       let browser, page;
       const scraper = process.argv[2];
