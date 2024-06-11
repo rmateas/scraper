@@ -4,7 +4,7 @@ import { log } from '../../../utils/logger/logger.js';
 const file = 'getVehCardUrls.js';
 
 export const getVehCardUrls = async (page, worker) => {
-  log({level:'debug', file, func:'getVehCardUrls', worker, message:'START'});
+  log({file, func:'getVehCardUrls', worker, message:'START'});
   let vehCardUrlArr = [];
 
   let allUrls = [...new Set(await page.$$eval('a', urls => urls.map(url => url.href)))];
@@ -32,6 +32,6 @@ export const getVehCardUrls = async (page, worker) => {
       }
     }
   }
-  log({level:'debug', file, func:'getVehCardUrls', worker, message:'SUCCESS'});
+  log({file, func:'getVehCardUrls', worker, message:'SUCCESS'});
   return vehCardUrlArr;
 }
