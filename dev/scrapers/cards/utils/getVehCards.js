@@ -1,6 +1,6 @@
+import { log } from '../../../utils/logger/logger.js';
 import { pageNav } from '../../../utils/navigation.js';
 import { getVehCardUrls } from './getVehCardUrls.js';
-import { log } from '../../../utils/logger/logger.js';
 
 let file = 'getVehCards.js';
 
@@ -18,7 +18,7 @@ export const getCardsFromDealer =  async (page, worker, seller, isNewInv) => {
   //   await page.waitForTimeout(2000);
   // }
 
-  let getPageHeight = async () => await page.evaluate(() => {return {current: document.documentElement.clientHeight + window.scrollY,total: window.document.body.scrollHeight}});
+  // let getPageHeight = async () => await page.evaluate(() => {return {current: document.documentElement.clientHeight + window.scrollY,total: window.document.body.scrollHeight}});
 
   let getCardsUni = async () => {
     log({file, func:'getCardsUni', worker, message:'START'});
