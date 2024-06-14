@@ -9,7 +9,7 @@ import { startBrowsers } from '../browser/browser.js';
 import { getCards } from './cards/getCards.js';
 // import { getSInfo } from './sinfo/getSInfo.js';
 // import { getVInfo } from './vinfo/getVInfo.js';
-// import { getPag } from './pag/getPag.js';
+import { getPagination } from './pag/getPagination.js';
 import { log } from '../utils/logger/logger.js';
 
 const file = 'startScraper.js';
@@ -144,7 +144,7 @@ const file = 'startScraper.js';
       try {
         // scraper == 'sinfo' ? await getSInfo(page, worker) :
         // scraper == 'vinfo' ? await getVInfo(page, worker) :
-        // scraper == 'pag' ? await getPag(page, worker) : 
+        scraper == 'pag' ? await getPagination(page, worker) : 
         scraper == 'cards' ? await getCards(page, worker) : 
         log({level:'ERROR', file, func:'message', worker, message:'SPECIFY SCRAPER'});
       } catch (e) {
