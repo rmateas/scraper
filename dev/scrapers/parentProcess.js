@@ -41,10 +41,10 @@ const file = 'startScraper.js';
     process.on('SIGQUIT', endSignalHandler);
 
     //PROD
-    let workers = Array.apply(undefined, Array(cpus().length)).map(()=>{});
+    // let workers = Array.apply(undefined, Array(cpus().length)).map(()=>{});
 
     //DEV
-    // let workers = [undefined];
+    let workers = [undefined];
 
     let browserNum = workers.length*2
     browsers = await startBrowsers(browserNum);
@@ -144,7 +144,7 @@ const file = 'startScraper.js';
       try {
         // scraper == 'sinfo' ? await getSInfo(page, worker) :
         // scraper == 'vinfo' ? await getVInfo(page, worker) :
-        scraper == 'pag' ? await getPagination(page, worker) : 
+        scraper == 'pag' ? await getPagination(page, worker) :
         scraper == 'cards' ? await getCards(page, worker) : 
         log({level:'ERROR', file, func:'message', worker, message:'SPECIFY SCRAPER'});
       } catch (e) {

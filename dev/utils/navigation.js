@@ -1,16 +1,21 @@
-export const pageNav = async (page, url) => {
+import { log } from './logger/logger.js';
 
-  let getHref = async () => {
-    let href = await page.evaluate(() => location.href);
-    return href.replace(/https?:\/\/(ww\w.)?/, '');
-  }
+const file = 'navigation.js';
 
-  let locHref = await getHref();
-  let cutUrl = url.replace(/https?:\/\/(ww\w.)?/, '');
+export const pageNav = async (page, worker, url) => {
+  log({file, func:'pageNav', worker, message:'START'});
 
-  if(locHref == cutUrl || locHref == cutUrl + '/'){
-    return;
-  }
+  // let getHref = async () => {
+  //   let href = await page.evaluate(() => location.href);
+  //   return href.replace(/https?:\/\/(ww\w.)?/, '');
+  // }
+
+  // let locHref = await getHref();
+  // let cutUrl = url.replace(/https?:\/\/(ww\w.)?/, '');
+
+  // if(locHref == cutUrl || locHref == cutUrl + '/'){
+  //   return;
+  // }
 
   let isRedirect = (res) => {
     let chain = res.request().redirectChain();

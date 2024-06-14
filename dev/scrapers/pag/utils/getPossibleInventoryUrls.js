@@ -1,6 +1,16 @@
-module.exports = async (page) => {
+import { log } from '../../../utils/logger/logger.js';
+
+const file = 'getPossibleInventoryUrls.js';
+const func = 'getPossibleInventoryUrls';
+
+export const getPossibleInventoryUrls = async (page, worker) => {
+  log({file, func, worker, message:'START'});
+  let urls = {
+    new: [],
+    used: []
+  }
   try {
-    return await page.evaluate(() => {
+    urls = await page.evaluate(() => {
       let Urls = {
         new: [],
         used: []
@@ -62,7 +72,9 @@ module.exports = async (page) => {
       }
       return Urls;
     });
-  } catch (e) {
-    throw new Error(`Error getting possible inventoy urls`);
+  } catch (error) {
+    log({level:'fatal', file, func, worker, message:'Error getting possible inventoy urls', error});
+  } finally {
+    return urls;
   }
 };
