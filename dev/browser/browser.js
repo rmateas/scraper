@@ -28,11 +28,12 @@ export const startBrowsers = async (browNum) => {
   let browsers = [];
   let shuffledProxies = shuffle(proxies);
 
+  let browserCount = 0;
+
   while(browsers.length != browNum){
-    if(!shuffledProxies.length){
-      break;
-    }
+    if(!shuffledProxies.length){break;}
     let browser;
+    let proxy = shuffledProxies.pop();
     try {
       //args options | //https://peter.sh/experiments/chromium-command-line-switches/
       browser = await puppeteer.launch({
@@ -69,7 +70,7 @@ export const startBrowsers = async (browNum) => {
           '--media-cache-size=0',
           '--disk-cache-size=0',
           `--incognito`,
-          `--proxy-server=${shuffledProxies.pop()}`
+          `--proxy-server=${proxy}`
         ]
       });
     } catch (e) {
@@ -86,13 +87,14 @@ export const startBrowsers = async (browNum) => {
     }
 
     let endpoint = browser.wsEndpoint();
-    browsers[i] = {
-      browserNum:i,
+    browsers[browserCount] = {
+      browserNum:browserCount,
       endpoint,
-      proxy:proxies[i],
+      proxy:proxy,
       working:false,
       conErr:0
     }
+    browserCount++;
   }
 
   log({file, func:'startBrowsers', message:`BROWSERS STARTED: ${browsers.length}`});
