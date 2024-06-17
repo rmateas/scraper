@@ -3,7 +3,7 @@ import { log } from './logger/logger.js';
 const file = 'navigation.js';
 
 export const pageNav = async (page, worker, url) => {
-  log({file, func:'pageNav', worker, message:'START'});
+  log({file, func:'pageNav', worker, message:`START: ${url}`});
 
   // let getHref = async () => {
   //   let href = await page.evaluate(() => location.href);
