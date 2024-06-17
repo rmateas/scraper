@@ -11,7 +11,7 @@ import { postAPI } from '../apiUtils.js';
  * @param {string} padStr 
  * @returns string
 */
-let addPadding = (padStr, pad = 20) => padStr.padStart(padStr.length + Math.ceil((pad - padStr.length)/2)).padEnd(padStr.length + (pad - padStr.length));
+let addPadding = (padStr, pad = 30) => padStr.padStart(padStr.length + Math.ceil((pad - padStr.length)/2)).padEnd(padStr.length + (pad - padStr.length));
 
 /**
  * Get level name
