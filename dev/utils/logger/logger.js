@@ -29,7 +29,7 @@ const getFormattedCurrentDate = () => moment(new Date()).format(moment.HTML5_FMT
 /**
  * Main Logging Function
  * @param {object} options 
- * OBJECT { level, message, error }
+ * OBJECT { level, file, func, worker, message, obj, error }
 */
 
 export const log = async (options) => {
@@ -66,12 +66,12 @@ const writeToConsole = (levelName, file, func, worker, message, obj, error = nul
   
   const header = `[${addPadding(worker.toString(), 2)}][${addPadding(levelName.toUpperCase(), 10)}][${getFormattedCurrentDate()}][${addPadding(file)}][${addPadding(func)}]`;
   
-  console.log(`${chalkFunction(header)}: ${chalkFunction(message)} ${obj ? `\n${obj}` : error ? `\n${error.stack}` : ''}`);
+  console.log(`${chalkFunction(header)}: ${chalkFunction(message)} ${obj || error ? '\n' : ''} `, obj ? obj : error ? error : '');
 }
 
 const writeToDB = async (scraper, level, message, error) => {
   // Live API
-  await postAPI(`https://as-webs-api.azurewebsites.net/errors/posterror`, JSON.stringify({scraper, level, message, error:error.stack, date: getFormattedCurrentDate()}));
+  await postAPI(0, `https://as-webs-api.azurewebsites.net/errors/posterror`, JSON.stringify({scraper, level, message, error:error.stack, date: getFormattedCurrentDate()}));
   // Local
   // await postAPI(`http://localhost:8080/error/posterror`, JSON.stringify({scraper, level, message, error:error.stack, date: getFormattedCurrentDate()}))
 }

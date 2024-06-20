@@ -21,7 +21,7 @@ export const setPageIterator = async (worker, pagObj) => {
     }
     log({file, func:'setPageIterator', worker, message:'SUCCESS | Exiting setPageIterator', obj:pageIterator});
     return pageIterator;
-  } catch (e) {
-    log({file, func:'setPageIterator', worker, message:'FAIL | Exiting setPageIterator', error:e});
+  } catch (error) {
+    await log({level:'error', file, func:'setPageIterator', worker, message:'FAIL | Exiting setPageIterator', error});
   }
 }

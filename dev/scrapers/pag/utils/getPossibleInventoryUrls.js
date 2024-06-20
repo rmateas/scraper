@@ -5,12 +5,8 @@ const func = 'getPossibleInventoryUrls';
 
 export const getPossibleInventoryUrls = async (page, worker) => {
   log({file, func, worker, message:'START'});
-  let urls = {
-    new: [],
-    used: []
-  }
   try {
-    urls = await page.evaluate(() => {
+    return await page.evaluate(() => {
       let Urls = {
         new: [],
         used: []
@@ -73,8 +69,6 @@ export const getPossibleInventoryUrls = async (page, worker) => {
       return Urls;
     });
   } catch (error) {
-    log({level:'fatal', file, func, worker, message:'Error getting possible inventoy urls', error});
-  } finally {
-    return urls;
+    await log({level:'fatal', file, func, worker, message:'Error getting possible inventoy urls', error});
   }
 };

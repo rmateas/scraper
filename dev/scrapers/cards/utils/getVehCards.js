@@ -46,8 +46,8 @@ export const getCardsFromDealer =  async (page, worker, seller, isNewInv) => {
         window.changePageSize();
       });
       await page.waitForTimeout(2000);
-    } catch (e) {
-      log({level:'error', file, func:'getCardsTemp3', worker, message:'ERROR CHANGING PAGES', error:e});
+    } catch (error) {
+      await log({level:'error', file, func:'getCardsTemp3', worker, message:'ERROR CHANGING PAGES', error});
     }
     //add check to make sure more cards were loaded in, for cases where the network hangs
     let nextPageObj = {value: 2};
@@ -63,8 +63,8 @@ export const getCardsFromDealer =  async (page, worker, seller, isNewInv) => {
         await page.waitForTimeout(3000);
         nextPageObj.value++;
       }
-    } catch (e) {
-      log({level:'error', file, func:'getCardsTemp3', worker, message:'ERROR FINDING THE END OF PAGINATION', error:e});
+    } catch (error) {
+      await log({level:'error', file, func:'getCardsTemp3', worker, message:'ERROR FINDING THE END OF PAGINATION', error});
     }
     vehCardArr.push.apply(vehCardArr, await getVehCardUrls(page, worker));
     log({file, func:'getCardsTemp3', worker, message:'SUCCESS'});

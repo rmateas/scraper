@@ -5,7 +5,7 @@ import { log } from '../../utils/logger/logger.js';
 export const getCards = async (page, worker) => {
   let file = 'getCards.js';
   log({file, func:'getCards', worker, message:'START'});
-  for(let seller of await getAPI('https://as-webs-api.azurewebsites.net/seller/getprod')){
+  for(let seller of await getAPI('https://as-webs-api.azurewebsites.net/seller/getcards')){
     let cards = {
       sellerId:seller.sellerId,
       sellerTemplate:seller.sellerTemplate,
@@ -34,7 +34,7 @@ export const getCards = async (page, worker) => {
       }
       cards.scraped.vehNumTotal = cards.scraped.vehNumTotalNew + cards.scraped.vehNumTotalUsed;
     } catch (e) {
-      log({file, func:'getCards', worker, message:'ERROR WHILE SCRAPING', error:e});
+      await log({level:'error', file, func:'getCards', worker, message:'ERROR WHILE SCRAPING', error:e});
       cards.scraped.scrapeErr = { errMessage: e.message };
       cards.scraped.scrapeOutcome = 'FAIL';
     }finally {

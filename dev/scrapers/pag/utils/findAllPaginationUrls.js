@@ -9,7 +9,7 @@ const file = 'findAllPaginationUrls.js';
  * @returns Object
  */
 export const findAllPaginationUrls = async (page, worker) => {
-  log({level:'debug', file, func:'findAllPaginationUrls', worker, message:'Start'});
+  log({level:'debug', file, func:'findAllPaginationUrls', worker, message:'START'});
   try{
     let posPagUrls =  await page.evaluate(() => {
       let paginationUrls = [];
@@ -58,8 +58,8 @@ export const findAllPaginationUrls = async (page, worker) => {
     });
     log({level:'debug', file, func:'findAllPaginationUrls', worker, message:'SUCCESS | Exiting findAllPaginationUrls', obj:posPagUrls});
     return posPagUrls;
-  } catch (e) {
-    log({level:'error', file, func:'findAllPaginationUrls', worker, message:'FAIL | Exiting findAllPaginationUrls', error:e});
+  } catch (error) {
+    await log({level:'error', file, func:'findAllPaginationUrls', worker, message:'FAIL | Exiting findAllPaginationUrls', error});
     throw new Error(`Error getting possible pagination URLs`);
   }
 }

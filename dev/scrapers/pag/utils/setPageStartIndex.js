@@ -28,7 +28,7 @@ export const setPageStartIndex = async (page, worker, pagObj) => {
     }
     log({file, func:'setPageStartIndex', worker, message:'SUCCESS | Exiting setPageStartIndex', obj:startingIndex});
     return startingIndex;
-  } catch (e) {
-    log({level:'error', file, func:'setPageStartIndex', worker, message:'FAIL | Exiting setPageStartIndex', error:e});
+  } catch (error) {
+    await log({level:'error', file, func:'setPageStartIndex', worker, message:'FAIL | Exiting setPageStartIndex', error});
   }
 }

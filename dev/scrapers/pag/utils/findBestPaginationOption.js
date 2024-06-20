@@ -16,6 +16,6 @@ export const findBestPaginationOption = async (page, worker, inventoryUrlArray) 
     log({file, func, worker, message:'SUCCESS | EXITING setPag', obj:[bestPagOption]});
     return [bestPagOption];
   } catch (error) {
-    log({level:'error', file, func, worker, message:'FAIL | EXITING setPag', error});
+    await log({level:'error', file, func, worker, message:'FAIL | EXITING setPag', error});
   }
 }

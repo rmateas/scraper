@@ -12,6 +12,7 @@ import { getCards } from './cards/getCards.js';
 import { getPagination } from './pag/getPagination.js';
 import { log } from '../utils/logger/logger.js';
 
+const scraper = process.argv[2];
 const file = 'startScraper.js';
 
 (async () => {
@@ -70,12 +71,10 @@ const file = 'startScraper.js';
     let checkWorkers = async () => {
       log({level:'debug', file, func:'checkWorkers', message:'START'});
       try {
-        let len = await (await fetch(`https://as-webs-api.azurewebsites.net/vehicle/arrlen`)).json();
+        let len = await (await fetch(`https://as-webs-api.azurewebsites.net/seller/arrlen/${scraper}`)).json();
         if('data' in len && len.data){
           for (let i = 0; i < workers.length; i++) {
-            if(workers[i] === undefined) {
-              await spawnWorker(i);
-            }
+            workers[i] === undefined && await spawnWorker(i);
           }
           log({level:'debug', file, func:'checkWorkers', message:'SUCCESSFULLY STARTED WORKERS'});
           await setTimeout(600000);
@@ -130,7 +129,6 @@ const file = 'startScraper.js';
       process.on('uncaughtException', (e) => {log({level:'error', file, func:'uncaughtException', message:'uncaughtException', error:e})});
       let {worker, browserWSEndpoint} = msg;
       let browser, page;
-      const scraper = process.argv[2];
       log({level:'debug', file, func:'message', worker, message:'STARTING CHILD PROCESS'});
 
       try {
@@ -144,7 +142,7 @@ const file = 'startScraper.js';
       try {
         // scraper == 'sinfo' ? await getSInfo(page, worker) :
         // scraper == 'vinfo' ? await getVInfo(page, worker) :
-        scraper == 'pag' ? await getPagination(page, worker) :
+        scraper == 'pagination' ? await getPagination(page, worker) :
         scraper == 'cards' ? await getCards(page, worker) : 
         log({level:'ERROR', file, func:'message', worker, message:'SPECIFY SCRAPER'});
       } catch (e) {

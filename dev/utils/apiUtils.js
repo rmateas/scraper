@@ -9,18 +9,18 @@ const getAPI = async (worker, path) => {
   let info;
   try {
     info = await (await fetch(path)).json();
-    if(info.status != 'success') {
-      log({level:'error', file, func:'getAPI', worker, message:`FAIL | API ERROR | ${info.message}`, error:info.stack});
+    if(info.message != 'SUCCESS') {
+      await log({level:'error', file, func:'getAPI', worker, message:`FAIL | API ERROR | ${info.message}`, error:info.stack});
       // ASSIGN EXIT CODE
       process.exit()
-    } else if(info.status == 'success' && !info.data.length){
-      log({level:'error', file, func:'getAPI', worker, message:`FAIL | API ERROR | NO API DATA`});
+    } else if(info.message == 'SUCCESS' && !info.data.length){
+      await log({level:'error', file, func:'getAPI', worker, message:`FAIL | API ERROR | NO API DATA`});
       process.exit(8000);
     }
   } catch (error) {
-    log({level:'error', file, func:'getAPI', worker, message:`FAIL | API ERROR | GET | Error fetching from API`, error});
+    await log({level:'error', file, func:'getAPI', worker, message:`FAIL | API ERROR | GET | Error fetching from API`, error});
     // ASSIGN EXIT CODE
-    process.exit()
+    process.exit();
   }
   return info.data;
 }
@@ -36,9 +36,9 @@ const postAPI = async (worker, path, info) => {
       }
     });
   } catch (error) {
-    log({level:'error', file, func:'postAPI', worker, message:`FAIL | API ERROR | POST`, error});
+    await log({level:'error', file, func:'postAPI', worker, message:`FAIL | API ERROR | POST`, error});
     await setTimeout(5000);
-    await postAPI(path, info);
+    await postAPI(worker, path, info);
   }
 }
 
