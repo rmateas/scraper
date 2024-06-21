@@ -37,7 +37,7 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
 #docker build --no-cache -t crwebs.azurecr.io/scraper:v1.0-vinfo-061024 . && docker push crwebs.azurecr.io/scraper:v1.0-vinfo-061024
 
 #NAME: cards
-CMD [ "npm", "run", "cards" ]
+# CMD [ "npm", "run", "cards" ]
 # docker build --no-cache -t crwebs.azurecr.io/scraper:v1.0-cards-061024b . && docker push crwebs.azurecr.io/scraper:v1.0-cards-061024b
 
 #NAME: sinfo
@@ -45,8 +45,8 @@ CMD [ "npm", "run", "cards" ]
 #docker build --no-cache -t crwebs.azurecr.io/scraper:v1.0-sinfo-052124 . && docker push crwebs.azurecr.io/scraper:v1.0-sinfo-052124
 
 #NAME: pag
-# CMD [ "npm", "run", "pprod" ]
-#docker build --no-cache -t crwebs.azurecr.io/scraper:v1.0-pag-052124 . && docker push crwebs.azurecr.io/scraper:v1.0-pag-052124
+CMD [ "npm", "run", "pag" ]
+#docker build --no-cache -t crwebs.azurecr.io/scraper:v1.0-pag-062024 . && docker push crwebs.azurecr.io/scraper:v1.0-pag-062024
 
 # test image locally
 # docker run -p 8080:8080 <tag_name>

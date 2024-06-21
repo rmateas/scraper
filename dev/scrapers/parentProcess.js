@@ -42,10 +42,10 @@ const file = 'startScraper.js';
     process.on('SIGQUIT', endSignalHandler);
 
     //PROD
-    let workers = Array.apply(undefined, Array(cpus().length)).map(()=>{});
+    // let workers = Array.apply(undefined, Array(cpus().length)).map(()=>{});
 
     //DEV
-    // let workers = [undefined];
+    let workers = [undefined, undefined,undefined, undefined,undefined, undefined,undefined, undefined,undefined, undefined,undefined, undefined];
 
     let browserNum = workers.length*2
     browsers = await startBrowsers(browserNum);
@@ -106,7 +106,9 @@ const file = 'startScraper.js';
     }
     
     cluster.on('exit', async (worker, code) => {
-      let workerIndex = workers.map(el => el.worker).indexOf(worker.process.pid);
+      log({level:'debug', file, func:'workerExit', worker:0, message:`worker pid`, obj:worker.process.pid});
+      log({level:'debug', file, func:'workerExit', worker:0, message:`worker pid`, obj:workers});
+      let workerIndex = workers.map(el => el?.worker).indexOf(worker.process.pid);
       log({level:'debug', file, func:'workerExit', worker:workerIndex, message:'WORKER EXITING'});
       browsers[workers[workerIndex].browNum].working = 0;
       if(code == 10) {
@@ -140,9 +142,9 @@ const file = 'startScraper.js';
       }
       
       try {
+        scraper == 'pagination' ? await getPagination(page, worker) :
         // scraper == 'sinfo' ? await getSInfo(page, worker) :
         // scraper == 'vinfo' ? await getVInfo(page, worker) :
-        scraper == 'pagination' ? await getPagination(page, worker) :
         scraper == 'cards' ? await getCards(page, worker) : 
         log({level:'ERROR', file, func:'message', worker, message:'SPECIFY SCRAPER'});
       } catch (e) {
