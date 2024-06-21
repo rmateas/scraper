@@ -106,8 +106,6 @@ const file = 'startScraper.js';
     }
     
     cluster.on('exit', async (worker, code) => {
-      log({level:'debug', file, func:'workerExit', worker:0, message:`worker pid`, obj:worker.process.pid});
-      log({level:'debug', file, func:'workerExit', worker:0, message:`worker pid`, obj:workers});
       let workerIndex = workers.map(el => el?.worker).indexOf(worker.process.pid);
       log({level:'debug', file, func:'workerExit', worker:workerIndex, message:'WORKER EXITING'});
       browsers[workers[workerIndex].browNum].working = 0;
