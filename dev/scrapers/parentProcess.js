@@ -42,10 +42,10 @@ const file = 'startScraper.js';
     process.on('SIGQUIT', endSignalHandler);
 
     //PROD
-    // let workers = Array.apply(undefined, Array(cpus().length)).map(()=>{});
+    let workers = Array.apply(undefined, Array(cpus().length)).map(()=>{});
 
     //DEV
-    let workers = [undefined, undefined,undefined, undefined,undefined, undefined,undefined, undefined,undefined, undefined,undefined, undefined];
+    // let workers = [undefined, undefined,undefined, undefined,undefined, undefined,undefined, undefined,undefined, undefined,undefined, undefined];
 
     let browserNum = workers.length*2
     browsers = await startBrowsers(browserNum);
