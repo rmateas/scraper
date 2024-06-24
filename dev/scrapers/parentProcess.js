@@ -25,8 +25,10 @@ const file = 'startScraper.js';
 
     if(process.env.NODE_ENV.test(/dev(eleopment)?/i)){
       process.env.HOST = 'localhost:8080';
+      process.env.WORKERS = 2;
     } else {
       process.env.HOST = 'https://as-webs-api.azurewebsites.net';
+      process.env.WORKERS = cpus().length;
     }
 
     let browsers = [];
@@ -51,7 +53,7 @@ const file = 'startScraper.js';
     process.on('SIGQUIT', endSignalHandler);
 
     //PROD
-    let workers = Array.apply(undefined, Array(cpus().length)).map(()=>{});
+    let workers = Array.apply(undefined, Array(process.env.WORKERS)).map(()=>{});
 
     //DEV
     // let workers = [undefined, undefined,undefined, undefined,undefined, undefined,undefined, undefined,undefined, undefined,undefined, undefined];
