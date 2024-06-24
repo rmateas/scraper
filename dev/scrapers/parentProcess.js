@@ -19,13 +19,20 @@ const file = 'startScraper.js';
   //Parent process
   if(cluster.isPrimary) {
     console.log('PARENT START');
-    log({file, func:'main', level: 'info', message:'CARDS SCRAPER START'});
+    log({file, func:'main', level: 'info', message:`${scraper.toUpperCase()} SCRAPER START`});
 
     // ENV VARIABLES
 
     if(/dev(eleopment)?/i.test(process.env.NODE_ENV)){
       process.env.HOST = 'localhost:8080';
       process.env.WORKERS = 2;
+      try {
+        await fetch(`http://${process.env.HOST}/new-image`);
+      } catch (error) {
+        console.log('LOCAL API ERROR');
+        console.log(error);
+        process.exit();
+      }
     } else {
       process.env.HOST = 'https://as-webs-api.azurewebsites.net';
       process.env.WORKERS = cpus().length;
@@ -52,9 +59,11 @@ const file = 'startScraper.js';
     process.on('SIGTERM', endSignalHandler);
     process.on('SIGQUIT', endSignalHandler);
     
-    let workers = Array.apply(undefined, Array(process.env.WORKERS)).map(()=>{});
+    let workers = Array.apply(undefined, Array(+process.env.WORKERS)).map(()=>{});
 
-    let browserNum = workers.length*2
+    console.log(workers);
+
+    let browserNum = workers.length*2;
     browsers = await startBrowsers(browserNum);
     if(browsers.length != browserNum){
       workers.slice(browserNum - browsers.length);
@@ -108,7 +117,7 @@ const file = 'startScraper.js';
         //https://github.com/nodejs/node/issues/39854 
         //creating the worker and then immediately sending a message creates a race condition due to ESM modules being loaded asynchronously
         worker.send({worker:workerNum, browserWSEndpoint:brow.endpoint});
-      })
+      });
       log({level:'debug', file, func:'spawnWorker', worker: workerNum, message:'SUCCESSFULLY STARTED WORKER'});
     }
     
