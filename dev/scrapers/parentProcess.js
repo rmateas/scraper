@@ -24,10 +24,10 @@ const file = 'startScraper.js';
     // ENV VARIABLES
 
     if(/dev(eleopment)?/i.test(process.env.NODE_ENV)){
-      process.env.HOST = 'localhost:8080';
+      process.env.HOST = 'http://localhost:8080';
       process.env.WORKERS = 2;
       try {
-        await fetch(`http://${process.env.HOST}/new-image`);
+        await fetch(`${process.env.HOST}/new-image`);
       } catch (error) {
         console.log('LOCAL API ERROR');
         console.log(error);
