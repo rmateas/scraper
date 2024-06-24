@@ -23,7 +23,7 @@ const file = 'startScraper.js';
 
     // ENV VARIABLES
 
-    if(process.env.NODE_ENV.test(/dev(eleopment)?/i)){
+    if(/dev(eleopment)?/i.test(process.env.NODE_ENV)){
       process.env.HOST = 'localhost:8080';
       process.env.WORKERS = 2;
     } else {
@@ -51,12 +51,8 @@ const file = 'startScraper.js';
     process.on('SIGINT', endSignalHandler);
     process.on('SIGTERM', endSignalHandler);
     process.on('SIGQUIT', endSignalHandler);
-
-    //PROD
+    
     let workers = Array.apply(undefined, Array(process.env.WORKERS)).map(()=>{});
-
-    //DEV
-    // let workers = [undefined, undefined,undefined, undefined,undefined, undefined,undefined, undefined,undefined, undefined,undefined, undefined];
 
     let browserNum = workers.length*2
     browsers = await startBrowsers(browserNum);
