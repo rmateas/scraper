@@ -31,22 +31,22 @@ COPY . .
 # Update the PUPPETEER_EXECUTABLE_PATH to the correct Chrome path (placeholder, update based on the output of `which google-chrome-stable`)
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+  
+#NAME: sinfo
+# CMD [ "npm", "run", "sprod" ]
+# docker build --no-cache -t crwebs.azurecr.io/scraper:v1.0-sinfo-052124 . && docker push crwebs.azurecr.io/scraper:v1.0-sinfo-052124
 
 #NAME: vinfo
 # CMD [ "npm", "run", "vprod" ]
-#docker build --no-cache -t crwebs.azurecr.io/scraper:v1.0-vinfo-061024 . && docker push crwebs.azurecr.io/scraper:v1.0-vinfo-061024
+# docker build --no-cache -t crwebs.azurecr.io/scraper:v1.0-vinfo-061024 . && docker push crwebs.azurecr.io/scraper:v1.0-vinfo-061024
 
 #NAME: cards
 # CMD [ "npm", "run", "cards" ]
-# docker build --no-cache -t crwebs.azurecr.io/scraper:v1.0-cards-061024b . && docker push crwebs.azurecr.io/scraper:v1.0-cards-061024b
-
-#NAME: sinfo
-#CMD [ "npm", "run", "sprod" ]
-#docker build --no-cache -t crwebs.azurecr.io/scraper:v1.0-sinfo-052124 . && docker push crwebs.azurecr.io/scraper:v1.0-sinfo-052124
+# docker build --no-cache -t crwebs.azurecr.io/scraper:v1.0-cards-062124 . && docker push crwebs.azurecr.io/scraper:v1.0-cards-062124
 
 #NAME: pag
 CMD [ "npm", "run", "pag" ]
-#docker build --no-cache -t crwebs.azurecr.io/scraper:v1.0-pag-062024 . && docker push crwebs.azurecr.io/scraper:v1.0-pag-062024
+# docker build --no-cache -t crwebs.azurecr.io/scraper:v1.0-pag-062124 . && docker push crwebs.azurecr.io/scraper:v1.0-pag-062124
 
 # test image locally
 # docker run -p 8080:8080 <tag_name>

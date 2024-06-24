@@ -5,7 +5,7 @@ import { log } from '../../utils/logger/logger.js';
 export const getCards = async (page, worker) => {
   let file = 'getCards.js';
   log({file, func:'getCards', worker, message:'START'});
-  for(let seller of await getAPI('https://as-webs-api.azurewebsites.net/seller/getcards')){
+  for(let seller of await getAPI(`${process.env.HOST}/seller/getcards`)){
     let cards = {
       sellerId:seller.sellerId,
       sellerTemplate:seller.sellerTemplate,
@@ -39,7 +39,7 @@ export const getCards = async (page, worker) => {
       cards.scraped.scrapeOutcome = 'FAIL';
     }finally {
       log({file, func:'getCards', worker, message:`SCRAPING CARDS END | Total cards found: ${cards.vehCardUrlArr.length}`});
-      await postAPI(`https://as-webs-api.azurewebsites.net/vehicle/insert`, JSON.stringify(cards));
+      await postAPI(`${process.env.HOST}/vehicle/insert`, JSON.stringify(cards));
     }
   }
 }

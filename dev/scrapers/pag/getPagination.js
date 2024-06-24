@@ -26,7 +26,7 @@ export const getPagination = async (page, worker) => {
   //   qp.template ? `${apiUrl}&sellerUrl[exists]=true&sellerTemplate=${qp.template}` :
   //   `${apiUrl}&sellerUrl[exists]=true`;
 
-  let seller = (await getAPI(worker, 'https://as-webs-api.azurewebsites.net/seller/getpag'))[0];
+  let seller = (await getAPI(worker, `${process.env.HOST}/seller/getpag`))[0];
 
   let paginationInfo = {
     sellerId:seller.sellerId,
@@ -101,6 +101,6 @@ export const getPagination = async (page, worker) => {
     paginationInfo.scraped.scrapeOutcome = 'FAIL';
     await log({level:'error', file, func, worker, message:`FAIL | ERROR FINDING PAGINATION FOR ${seller.sellerUrl}`, error});
   }finally {
-    await postAPI(worker, 'https://as-webs-api.azurewebsites.net/seller/updatepag', JSON.stringify(paginationInfo));
+    await postAPI(worker, `${process.env.HOST}/seller/updatepag`, JSON.stringify(paginationInfo));
   }
 }

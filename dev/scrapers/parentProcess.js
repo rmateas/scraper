@@ -20,6 +20,15 @@ const file = 'startScraper.js';
   if(cluster.isPrimary) {
     console.log('PARENT START');
     log({file, func:'main', level: 'info', message:'CARDS SCRAPER START'});
+
+    // ENV VARIABLES
+
+    if(process.env.NODE_ENV.test(/dev(eleopment)?/i)){
+      process.env.HOST = 'localhost:8080';
+    } else {
+      process.env.HOST = 'https://as-webs-api.azurewebsites.net';
+    }
+
     let browsers = [];
     let endSignalHandler = async () =>  {
       log({file, func:'endSignalHandler', message:`CLOSING ${browsers.length} BROWSERS`});
@@ -71,7 +80,7 @@ const file = 'startScraper.js';
     let checkWorkers = async () => {
       log({level:'debug', file, func:'checkWorkers', message:'START'});
       try {
-        let len = await (await fetch(`https://as-webs-api.azurewebsites.net/seller/arrlen/${scraper}`)).json();
+        let len = await (await fetch(`${process.env.HOST}/seller/arrlen/${scraper}`)).json();
         if('data' in len && len.data){
           for (let i = 0; i < workers.length; i++) {
             workers[i] === undefined && await spawnWorker(i);
