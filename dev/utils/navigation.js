@@ -1,3 +1,5 @@
+import { setTimeout } from 'node:timers/promises';
+
 import { log } from './logger/logger.js';
 
 const file = 'navigation.js';
@@ -5,8 +7,8 @@ const file = 'navigation.js';
 export const pageNav = async (page, worker, url) => {
   log({file, func:'pageNav', worker, message:`START: ${url}`});
 
-  let isRedirect = (res) => {
-    let chain = res.request().redirectChain();
+  let isRedirect = async (res) => {
+    let chain = await res.request().redirectChain();
     if(chain.length){
       return new Error('FAIL : Page redirect');
     }
@@ -22,7 +24,7 @@ export const pageNav = async (page, worker, url) => {
     let botCounter = 0;
     while(await page.evaluate(() => document.evaluate('//*[contains(text(), "This process is automatic. Your browser will redirect to your requested content shortly")]', document, null,XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue) && botCounter < 3){
       botCounter++;
-      await page.waitForTimeout(7000);
+      await setTimeout(7000);
     }
     if (botCounter == 3){
       throw new Error(`FAIL : Stuck on bot validation | ${url}`);
@@ -47,12 +49,12 @@ export const pageNav = async (page, worker, url) => {
     let res;
     try {
       res = await page.goto(url, {waitUntil:loadTrigger, timeout:20000});
+      await isBotDetector();
+      await isCaptcha();
+      await isRedirect(res);
     } catch (e) {
       return browErrHandler();
     }
-    await isBotDetector();
-    isRedirect(res);
-    await isCaptcha();
     return true;
   }
 

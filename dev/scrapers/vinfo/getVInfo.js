@@ -1,7 +1,7 @@
 //Dealer Inspire|DealerOn|template1
 const fs = require('fs');
 const path = require('path');
-
+const { setTimeout } = require('node:timers/promises');
 const { performance:time } = require('perf_hooks');
 
 const { log, devLog } = require('../sharedSnips/template/logger.js');
@@ -41,7 +41,7 @@ module.exports = async (worker, page, qp, proxy) => {
       VehCardInfoArr.push(specs);
       let time2 = time.now();
       if((time2 - time1) < 7000){
-        await page.waitForTimeout((Math.random()*1000)+ (7000 - (time2 - time1)));
+        await setTimeout((Math.random()*1000)+ (7000 - (time2 - time1)));
       }
     }
   }

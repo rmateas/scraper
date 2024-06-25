@@ -46,7 +46,7 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
 
 #NAME: pag
 CMD [ "npm", "run", "pag" ]
-# docker build --no-cache -t crwebs.azurecr.io/scraper:v1.0-pag-062124 . && docker push crwebs.azurecr.io/scraper:v1.0-pag-062124
+# docker build --no-cache -t crwebs.azurecr.io/scraper:v1.0-pag-062524 . && docker push crwebs.azurecr.io/scraper:v1.0-pag-062524
 
 # test image locally
 # docker run -p 8080:8080 <tag_name>

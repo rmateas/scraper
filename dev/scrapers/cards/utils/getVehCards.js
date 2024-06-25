@@ -1,3 +1,5 @@
+import { setTimeout } from 'node:timers/promises'; 
+
 import { log } from '../../../utils/logger/logger.js';
 import { pageNav } from '../../../utils/navigation.js';
 import { getVehCardUrls } from './getVehCardUrls.js';
@@ -15,7 +17,7 @@ export const getCardsFromDealer =  async (page, worker, seller, isNewInv) => {
 
   // let scrollToPageBottom = async () => {
   //   await page.evaluate(() => {window.scrollTo(0, window.document.body.scrollHeight)});
-  //   await page.waitForTimeout(2000);
+  //   await setTimeout(2000);
   // }
 
   // let getPageHeight = async () => await page.evaluate(() => {return {current: document.documentElement.clientHeight + window.scrollY,total: window.document.body.scrollHeight}});
@@ -45,7 +47,7 @@ export const getCardsFromDealer =  async (page, worker, seller, isNewInv) => {
         pageSizeSelectors[pageSizeSelectors.length-1].selected = true;
         window.changePageSize();
       });
-      await page.waitForTimeout(2000);
+      await setTimeout(2000);
     } catch (error) {
       await log({level:'error', file, func:'getCardsTemp3', worker, message:'ERROR CHANGING PAGES', error});
     }
@@ -60,7 +62,7 @@ export const getCardsFromDealer =  async (page, worker, seller, isNewInv) => {
         vehCardArr = [...new Set(vehCardArr)];
         vehCardsPerPageArr.push(vehCardArr.length - oldUrlLeng);
         await page.evaluate(nextPageObj => {window.changePage(nextPageObj)}, nextPageObj);
-        await page.waitForTimeout(3000);
+        await setTimeout(3000);
         nextPageObj.value++;
       }
     } catch (error) {
@@ -88,7 +90,7 @@ export const getCardsFromDealer =  async (page, worker, seller, isNewInv) => {
     //     do {
     //       await scrollToPageBottom();
     //       pageHeight = await getPageHeight();
-    //       await page.waitForTimeout(2000);
+    //       await setTimeout(2000);
     //     } while (pageHeight.current <= pageHeight.total && (pageHeight.total - pageHeight.current) > 40);
     //   } catch (e) {
     //     log({level:'error', file, func:'getCardsFromDealer', worker, message:'ERROR WITH SCROLL EVENTS', error:e});
