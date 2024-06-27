@@ -18,7 +18,7 @@ let addPadding = (padStr, pad = 30) => padStr.padStart(padStr.length + Math.ceil
  * @param {string} level 
  * @returns string
  */
-const getLevelName = level => level && config.levels.hasOwnProperty(level) ? level : 'debug';
+const getLevelName = level => level && config.levels.hasOwnProperty(level) ? level : 'info';
 
 /**
  * Get formatted date
@@ -34,6 +34,7 @@ const getFormattedCurrentDate = () => moment(new Date()).format(moment.HTML5_FMT
 
 export const log = async (options) => {
   const levelName = getLevelName(options.level);
+  if(levelName == 'info' && !process.env.DEBUG){return;}
   const message = options.message ?? 'Unidentified Error';
   const error = options.error ?? null;
   const file = options.file ?? '*****SPECIFY FILE*****';

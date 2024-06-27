@@ -20,6 +20,10 @@ const func = 'getPagination';
 export const getPagination = async (page, worker) => {
   log({file, func, worker, message:'START'});
 
+  let timer1 = setInterval(()=> {
+    log({level:'info', file, func, worker, message:'WORKING'});
+  }, 10000);
+
   
   // let apiUrl = `${qp.host}/seller/get?limit=${qp.limit}&skip=${qp.skip}`;
   // let reqUrl = qp.url ? `${apiUrl}&sellerUrl=${qp.url}` :
@@ -102,5 +106,6 @@ export const getPagination = async (page, worker) => {
     await log({level:'error', file, func, worker, message:`FAIL | ERROR FINDING PAGINATION FOR ${seller.sellerUrl}`, error});
   }finally {
     await postAPI(worker, `${process.env.HOST}/seller/updatepag`, JSON.stringify(paginationInfo));
+    clearInterval(timer1);
   }
 }

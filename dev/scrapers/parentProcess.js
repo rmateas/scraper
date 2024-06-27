@@ -12,17 +12,25 @@ import { getCards } from './cards/getCards.js';
 import { getPagination } from './pag/getPagination.js';
 import { log } from '../utils/logger/logger.js';
 
+// Specify scraper that is being started, set from the package.json start script
 const scraper = process.argv[2];
-const file = 'startScraper.js';
 
+const file = 'startScraper.js';
+/**
+ * Async func to conatin awaits, easier to read than top-level await
+ */
 (async () => {
-  //Parent process
+  /**
+   * The if statement separates what is executed in the parent process and what is executed in the workers 
+   * Parent process
+   */
   if(cluster.isPrimary) {
     console.log('PARENT START');
-    log({file, func:'main', level: 'info', message:`${scraper.toUpperCase()} SCRAPER START`});
-
-    // ENV VARIABLES
-
+    log({file, func:'main', message:`${scraper.toUpperCase()} | SCRAPER START`});
+    /**
+     * DEV ONLY
+     * ENV VARIABLES
+     */  
     if(/dev(eleopment)?/i.test(process.env.NODE_ENV)){
       process.env.HOST = 'http://localhost:8080';
       process.env.WORKERS = 2;
@@ -39,6 +47,10 @@ const file = 'startScraper.js';
     }
 
     let browsers = [];
+    
+    /**
+     * Signal handler for process exit to make sure that all browsers close
+     */
     let endSignalHandler = async () =>  {
       log({file, func:'endSignalHandler', message:`CLOSING ${browsers.length} BROWSERS`});
       try {
@@ -49,10 +61,11 @@ const file = 'startScraper.js';
         }
       } catch (e) {
         console.log(e);
+      } finally {
+        log({file, func:'endSignalHandler', message:'ALL BROWSERS CLOSED'});
+        log({file, func:'endSignalHandler', message:'EXITING PROCESS'});
+        process.exit(0);
       }
-      log({file, func:'endSignalHandler', message:'ALL BROWSERS CLOSED'});
-      log({file, func:'endSignalHandler', message:'EXITING PROCESS'});
-      process.exit(0);
     }
     
     process.on('SIGINT', endSignalHandler);
@@ -61,14 +74,17 @@ const file = 'startScraper.js';
     
     let workers = Array.apply(undefined, Array(+process.env.WORKERS)).map(()=>{});
 
-    console.log(workers);
-
     let browserNum = workers.length*2;
     browsers = await startBrowsers(browserNum);
     if(browsers.length != browserNum){
       workers.slice(browserNum - browsers.length);
     }
   
+    /**
+     * 
+     * @param {int} worker 
+     * @returns {object}
+     */
     let pickBrowser = async (worker) => {
       log({level:'debug', file, func:'pickBrowser', worker, message:'START'});
       let rndNum = Math.floor(Math.random() * browsers.length);
@@ -171,5 +187,4 @@ const file = 'startScraper.js';
     //necessary to proc message from parent and start scraper
     process.send('ping');
   }
-  
 })();

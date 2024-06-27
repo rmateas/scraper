@@ -64,4 +64,5 @@ export const pageNav = async (page, worker, url) => {
   } else if(navCheck != true){
     await attemptNav('networkidle2');
   }
+  log({level:'debug', file, func:'pageNav', worker, message:`Nav to ${url}`})
 };
