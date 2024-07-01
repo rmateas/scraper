@@ -1,3 +1,15 @@
+/**
+ * Function Calls Order by File
+ * getPossibleInventoryUrls -> 
+ * findAllPaginationUrls -> 
+ * findBestPaginationOption -> 
+ * setPageIterator ->
+ * setPageStartIndex  
+ */
+
+
+
+
 import { log } from '../../utils/logger/logger.js';
 import { pageNav } from '../../utils/navigation.js';
 import { getAPI, postAPI } from '../../utils/apiUtils.js';
