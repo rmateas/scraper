@@ -1,6 +1,7 @@
 import { log } from '../../../utils/logger/logger.js';
 
 const file = 'findAllPaginationUrls.js';
+const func = 'findAllPaginationUrls';
 
 /**
  * Finds all urls that might be related to pagination and tries to set a page iterator and limit
@@ -9,17 +10,39 @@ const file = 'findAllPaginationUrls.js';
  * @returns Object
  */
 export const findAllPaginationUrls = async (page, worker) => {
-  log({level:'debug', file, func:'findAllPaginationUrls', worker, message:'START'});
+  log({level:'debug', file, func, worker, message:'START'});
+
+  let paginationUrls = [];
+  let possibleUrl;
+  let iterator;
+  let urlMatch;
+  let replaceRx;
+  let urlMatchRx = /\b_?(p(t|g|age(_no)?)?|start)(-|=)\d\d?\d?\d?\d?/;
+  let urlCardLimitRx = /&\b(pager|limit)=\d\d?\d?|\b(pager|limit)=\d\d?\d?\d?\d?&/;
+  let allUrls = [];
+  try {
+    await page.$$eval('a', url => {urlMatchRx.test(url.href) && !/\/#/.test(url.href) && allUrls.push(url.href)})
+  } catch (error) {
+    await log({level:'error', file, func, worker, message:'ERROR GETTING PAGINATION URLS', error});
+  }
+
+
+
+
+
   try{
+
+
+
+
+
+
+
+
+
+
+
     let posPagUrls =  await page.evaluate(() => {
-      let paginationUrls = [];
-      let possibleUrl;
-      let iterator;
-      let urlMatch;
-      let replaceRx;
-      let urlMatchRx = /\b_?(p(t|g|age(_no)?)?|start)(-|=)\d\d?\d?\d?\d?/;
-      let urlCardLimitRx = /&\b(pager|limit)=\d\d?\d?|\b(pager|limit)=\d\d?\d?\d?\d?&/;
-      let allUrls = [];
       document.querySelectorAll('a').forEach(url => {urlMatchRx.test(url.href) && !/\/#/.test(url.href) && allUrls.push(url.href)});
       allUrls = [...new Set(allUrls)];
       allUrls.sort((a,b)=>{return a.length-b.length});

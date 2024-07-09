@@ -34,20 +34,17 @@ export const startBrowsers = async (browNum) => {
     if(!shuffledProxies.length){break;}
     let browser;
     let proxy = shuffledProxies.pop();
-    let sandbox = /dev(eleopment)?/i.test(process.env.NODE_ENV) ? '' : '--no-sandbox';
+    let isDev = /dev(eleopment)?/i.test(process.env.NODE_ENV)
+    let isSandbox = isDev ? '' : '--no-sandbox';
+    let isHeadless = isDev ? false : 'new'
     try {
       //args options | //https://peter.sh/experiments/chromium-command-line-switches/
       browser = await puppeteer.launch({
-        // DEV
-        // headless:false,
-        
-        // PROD
-        headless:'new',
-        
+        headless: isHeadless,
         ignoreHTTPSErrors: true,
         args: [
           '--mute-audio',
-          `${sandbox}`, // creates chrome for testing zombies when closing browsers but is necessary for docker build
+          `${isSandbox}`, // creates chrome for testing zombies when closing browsers but is necessary for docker build
           '--disable-setuid-sandbox',
           '--aggressive-cache-discard',
           '--disable-gpu',

@@ -1,6 +1,6 @@
-import { setTimeout } from 'node:timers/promises';
+import {setTimeout} from 'node:timers/promises';
 
-import { log } from './logger/logger.js';
+import {log} from './logger/logger.js';
 
 const file = 'navigation.js';
 
@@ -8,27 +8,25 @@ export const pageNav = async (page, worker, url) => {
   log({file, func:'pageNav', worker, message:`START: ${url}`});
 
   let isRedirect = async (res) => {
-    let chain = await res.request().redirectChain();
-    if(chain.length){
-      return new Error('FAIL : Page redirect');
-    }
+    return (await res.request().redirectChain()).length ? true : false;
   }
 
   let isCaptcha = async () => {
-    if(await page.evaluate(() => document.evaluate('//iframe[contains(@src, "geo.captcha-delivery.com")]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue)){
-      throw new Error(`FAIL : Captcha | ${url}`);
-    }
+    return await page.evaluate(() => document.evaluate('//iframe[contains(@src, "geo.captcha-delivery.com")]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue) ? true : false;
   }
 
   let isBotDetector = async () => {
-    let botCounter = 0;
-    while(await page.evaluate(() => document.evaluate('//*[contains(text(), "This process is automatic. Your browser will redirect to your requested content shortly")]', document, null,XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue) && botCounter < 3){
-      botCounter++;
-      await setTimeout(7000);
-    }
-    if (botCounter == 3){
-      throw new Error(`FAIL : Stuck on bot validation | ${url}`);
-    }
+    // let botCounter = 0;
+    // let timeout1;
+    // while((await page.evaluate(() => document.evaluate('//*[contains(text(), "This process is automatic. Your browser will redirect to your requested content shortly")]', document, null,XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue) || await page.$('.cf-im-under-attack')) && botCounter < 3){
+    //   botCounter++;
+    //   timeout1 = await setTimeout(7000);
+    //}
+    // if (botCounter > 2){
+    //   clearTimeout(timeout1);
+    //   return true;
+    //}
+    return await page.$('.cf-im-under-attack') != null ? true : false;
   }
 
   let reqFail;
@@ -37,32 +35,33 @@ export const pageNav = async (page, worker, url) => {
     reqFail = request.failure();
   });
 
-  let browErrHandler = async () => {
-    if(reqFail){
-      if(reqFail.errorText == 'net::ERR_TUNNEL_CONNECTION_FAILED'){
-        return new Error(`No response from site server | ${reqFail.errorText}`);
-      }
-    }
+  let browErrHandler = () => {
+    return reqFail?.errorText == 'net::ERR_TUNNEL_CONNECTION_FAILED' ? `FAIL | No response from site server | ${reqFail.errorText}` : reqFail?.errorText || 'UnknownReason';
   }
 
   let attemptNav = async (loadTrigger) => {
     let res;
     try {
       res = await page.goto(url, {waitUntil:loadTrigger, timeout:20000});
-      await isBotDetector();
-      await isCaptcha();
-      await isRedirect(res);
-    } catch (e) {
-      return browErrHandler();
+      if (await isBotDetector()) {
+        return {status: false, message: `FAIL | Stuck on bot validation | ${url}`};
+      } else if (await isCaptcha()) {
+        return {status: false, message: `FAIL | Captcha | ${url}`};
+      } else if (await isRedirect(res)) {
+        return {status: false, message: 'FAIL | Page redirect'};
+      }
+    } catch (error) {
+      if(loadTrigger == 'domcontentloaded' && error.message.includes('Navigation timeout')) {
+        return await attemptNav('networkidle2');
+      } else {
+        log({level: 'fatal', file, func:'attempNav', worker, message:'FAIL NAV', error});
+        return {status: false, message: browErrHandler()};
+      }
     }
     return true;
   }
 
-  let navCheck = await attemptNav('domcontentloaded');
-  if(navCheck instanceof Error){
-    throw navCheck;
-  } else if(navCheck != true){
-    await attemptNav('networkidle2');
-  }
-  log({level:'debug', file, func:'pageNav', worker, message:`Nav to ${url}`})
+  await attemptNav('domcontentloaded');
+  log({level:'debug', file, func:'pageNav', worker, message:`Nav to ${url}`});
+  // await page.goto(`${process.env.HOST}/seller/arrlen/${process.argv[2]}`);
 };

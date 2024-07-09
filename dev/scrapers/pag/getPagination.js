@@ -1,5 +1,6 @@
 /**
  * Function Calls Order by File
+ * 
  * getPossibleInventoryUrls -> 
  * findAllPaginationUrls -> 
  * findBestPaginationOption -> 
@@ -17,8 +18,6 @@ import { findPossiblePagination } from './utils/findPossiblePagination.js';
 import { findBestPaginationOption } from './utils/findBestPaginationOption.js';
 import { getPossibleInventoryUrls } from './utils/getPossibleInventoryUrls.js';
 
-const file = 'getPagination.js';
-const func = 'getPagination';
 
 /**
  * FLOW OF THIS SCRAPER:
@@ -30,12 +29,9 @@ const func = 'getPagination';
  *  
  */
 export const getPagination = async (page, worker) => {
+  const file = 'getPagination.js';
+  const func = 'getPagination';
   log({file, func, worker, message:'START'});
-
-  let timer1 = setInterval(()=> {
-    log({level:'info', file, func, worker, message:'WORKING'});
-  }, 10000);
-
   
   // let apiUrl = `${qp.host}/seller/get?limit=${qp.limit}&skip=${qp.skip}`;
   // let reqUrl = qp.url ? `${apiUrl}&sellerUrl=${qp.url}` :
@@ -60,13 +56,19 @@ export const getPagination = async (page, worker) => {
       vehNumPerPageNew: [],
       vehNumTotalUsed: 0,
       vehNumPerPageUsed: [],
+      possibleInventoryUrls: []
     }
   };
 
   try {
-    await pageNav(page, worker, seller.sellerUrl);
+    let getPaginationNav1 = await pageNav(page, worker, seller.sellerUrl);
+    if(getPaginationNav1 != true){
+      throw new Error(getPaginationNav1.message)
+    }
+
     let possibleInventoryUrls = await getPossibleInventoryUrls(page, worker);
-    if(!possibleInventoryUrls || !possibleInventoryUrls.length){
+    paginationInfo.scraped.possibleInventoryUrls = possibleInventoryUrls.allInvUrls;
+    if(!possibleInventoryUrls.new.length || !possibleInventoryUrls.used.length){
       throw new Error('No Inventory URLs Found');
     }
 
@@ -118,6 +120,5 @@ export const getPagination = async (page, worker) => {
     await log({level:'error', file, func, worker, message:`FAIL | ERROR FINDING PAGINATION FOR ${seller.sellerUrl}`, error});
   }finally {
     await postAPI(worker, `${process.env.HOST}/seller/updatepag`, JSON.stringify(paginationInfo));
-    clearInterval(timer1);
   }
 }

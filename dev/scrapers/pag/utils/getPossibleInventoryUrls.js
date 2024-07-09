@@ -5,12 +5,15 @@ const func = 'getPossibleInventoryUrls';
 
 export const getPossibleInventoryUrls = async (page, worker) => {
   log({file, func, worker, message:'START'});
+
+  let invUrls = {
+    new: [],
+    used: [],
+    allInvUrls: []
+  }
+
   try {
-    return await page.evaluate(() => {
-      let Urls = {
-        new: [],
-        used: []
-      };
+    invUrls.allInvUrls = await page.evaluate(() => {
       let possibleUrlArr = [];
       let possibleUrlsSnap = document.evaluate(`//a/@href[contains(., "/")]`, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
       let urlRx = new RegExp(`\^\(\(https://www.\)\?${location.href}\|/\)`);
@@ -24,51 +27,48 @@ export const getPossibleInventoryUrls = async (page, worker) => {
           possibleUrlArr.push(url);
         }
       }
-      possibleUrlArr = [...new Set(possibleUrlArr)];
-  
-      for (let url of possibleUrlArr) {
-        if (/^\/newandusedcars\?clearall=1$/.test(url)) {
-          Urls.new = [];
-          Urls.used = [url];
-          break;
-        }
-        if (/\/((new|used)-(inventory|vehicles))((\/index)?[^\/]+)?$/.test(url) || /\/(search|new|used|(view-)?inventory|vehicles|pre-?owned)([^\/]+)?$/.test(url) || /\/search\/(new|used)(\w|-)+?\/\?cy=\w{5,6}&tp=(new|used)$/.test(url)) {
-          /new/i.test(url) ? Urls.new.push(url) : Urls.used.push(url);
-        }
-      }
-  
-      let slimUrls = (urls, isNewInv = false) => {
-        urls = urls.sort((a,b) => {return a.length-b.length});
-        let smallUrls = [];
-        let shortUrls = [{url:urls[0],count:0}, {url:urls[1],count:0}, {url:urls[2],count:0}];
-        for(let i = 0; i < shortUrls.length; i++){
-          for(let url of urls){
-            if(url.includes(shortUrls[i].url)){
-              shortUrls[i].count++;
-            }
-          }
-        }
-        for(let short of shortUrls){
-          short.count > 1 && smallUrls.push(short.url);
-        }
-  
-        if(smallUrls.length){
-          isNewInv ? Urls.new = smallUrls : Urls.used = smallUrls;
-        } else {
-          isNewInv ? Urls.new = urls.slice(0,5) : Urls.used = urls.slice(0,5)
-        }
-      }
-  
-      if(Urls.new.length > 5){
-        slimUrls(Urls.new, true);
-      }
-  
-      if(Urls.used.length > 5){
-        slimUrls(Urls.used);
-      }
-      return Urls;
-    });
+      return [...new Set(possibleUrlArr)];
+    })
   } catch (error) {
     await log({level:'fatal', file, func, worker, message:'Error getting possible inventoy urls', error});
+    return invUrls;
   }
+
+  for (let url of invUrls.allInvUrls) {
+    if (/^\/newandusedcars\?clearall=1$/.test(url)) {
+      invUrls.new = [];
+      invUrls.used = [url];
+      break;
+    }
+    if (/\/((new|used)-(inventory|vehicles))((\/index)?[^\/]+)?$/.test(url) || /\/(search|new|used|(view-)?inventory|vehicles|pre-?owned)([^\/]+)?$/.test(url) || /\/search\/(new|used)(\w|-)+?\/\?cy=\w{5,6}&tp=(new|used)$/.test(url)) {
+      /new/i.test(url) ? invUrls.new.push(url) : invUrls.used.push(url);
+    }
+  }
+
+  let slimUrls = (urls, isNewInv = false) => {
+    urls = urls.sort((a,b) => {return a.length-b.length});
+    let smallUrls = [];
+    let shortUrls = [{url:urls[0],count:0}, {url:urls[1],count:0}, {url:urls[2],count:0}];
+    for(let i = 0; i < shortUrls.length; i++){
+      for(let url of urls){
+        if(url.includes(shortUrls[i].url)){
+          shortUrls[i].count++;
+        }
+      }
+    }
+    
+    for(let short of shortUrls){
+      short.count > 1 && smallUrls.push(short.url);
+    }
+
+    if(smallUrls.length){
+      isNewInv ? invUrls.new = smallUrls : invUrls.used = smallUrls;
+    } else {
+      isNewInv ? invUrls.new = urls.slice(0,5) : invUrls.used = urls.slice(0,5)
+    }
+    log({file, func:'slimUrls', worker, message:`SLIMMING URLS FOR ${isNewInv ? 'NEW' : 'USED'}`})
+  }
+  if(invUrls.new.length > 5){slimUrls(invUrls.new, true);}
+  if(invUrls.used.length > 5){slimUrls(invUrls.used);}
+  return invUrls;
 };

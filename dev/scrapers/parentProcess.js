@@ -4,6 +4,7 @@ import cluster from 'node:cluster';
 import { setTimeout } from 'node:timers/promises';
 
 import puppeteer from "puppeteer-extra";
+import StealthPlugin from "puppeteer-extra-plugin-stealth";
 
 import { startBrowsers } from '../browser/browser.js';
 import { getCards } from './cards/getCards.js';
@@ -11,6 +12,8 @@ import { getCards } from './cards/getCards.js';
 // import { getVInfo } from './vinfo/getVInfo.js';
 import { getPagination } from './pag/getPagination.js';
 import { log } from '../utils/logger/logger.js';
+
+puppeteer.use(StealthPlugin());
 
 // Specify scraper that is being started, set from the package.json start script
 const scraper = process.argv[2];
@@ -33,7 +36,8 @@ const file = 'startScraper.js';
      */  
     if(/dev(eleopment)?/i.test(process.env.NODE_ENV)){
       process.env.HOST = 'http://localhost:8080';
-      process.env.WORKERS = 2;
+      process.env.WORKERS = 1;
+      process.env.DEBUG = true;
       try {
         await fetch(`${process.env.HOST}/new-image`);
       } catch (error) {
@@ -42,6 +46,7 @@ const file = 'startScraper.js';
         process.exit();
       }
     } else {
+      console.log('DEBUG logs not going to be printed');
       process.env.HOST = 'https://as-webs-api.azurewebsites.net';
       process.env.WORKERS = cpus().length;
     }
@@ -144,9 +149,7 @@ const file = 'startScraper.js';
       if(code == 10) {
         //browser connection error
         log({level:'debug', file, func:'workerExit', worker:workerIndex, message:'WORKER EXITED WITH BROWSER CONNECTION ERROR'});
-      } else if(code == 8000) {
-        log({level:'debug', file, func:'workerExit', worker:workerIndex, message:'WORKER EXITED WITH ERROR'});
-        workerIndex = undefined;
+        spawnWorker(workerIndex);
       } else {
         log({level:'debug', file, func:'workerExit', worker:workerIndex, message:'WORKER EXITED SUCCESSFULLY, SPAWNING NEW WORKER'});
         spawnWorker(workerIndex);
@@ -161,21 +164,23 @@ const file = 'startScraper.js';
       process.on('uncaughtException', (e) => {log({level:'error', file, func:'uncaughtException', message:'uncaughtException', error:e})});
       let {worker, browserWSEndpoint} = msg;
       let browser, page;
-      log({level:'debug', file, func:'message', worker, message:'STARTING CHILD PROCESS'});
 
       try {
+        log({level:'debug', file, func:'message', worker, message:'CONNECTING TO BROWSER'});
         browser = await puppeteer.connect({browserWSEndpoint});
         page = (await browser.pages())[0];
-      } catch (e) {
-        log({level:'error', file, func:'message', worker, message:'ERROR CONNECTING TO BROWSER', error:e});
+        log({level:'debug', file, func:'message', worker, message:`BROWSER CONNECTED: ${browser.connected}`});
+      } catch (error) {
+        log({level:'error', file, func:'message', worker, message:'ERROR CONNECTING TO BROWSER', error});
         process.exit(10);
       }
       
       try {
+        log({level:'debug', file, func:'message', worker, message:'STARTING SCRAPER'});
         scraper == 'pagination' ? await getPagination(page, worker) :
         // scraper == 'sinfo' ? await getSInfo(page, worker) :
         // scraper == 'vinfo' ? await getVInfo(page, worker) :
-        scraper == 'cards' ? await getCards(page, worker) : 
+        scraper == 'cards' ? await getCards(page, worker) :
         log({level:'ERROR', file, func:'message', worker, message:'SPECIFY SCRAPER'});
       } catch (e) {
         log({level:'error', file, func:'message', worker, message:'ERROR GETTING CARDS', error:e});

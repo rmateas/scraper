@@ -7,6 +7,7 @@ import { getVehCardUrls } from '../../cards/utils/getVehCardUrls.js';
 
 const file = 'findPossiblePagination.js';
 const func = 'findPossiblePagination';
+let findPossiblePaginationFlow = []
 let possiblePaginationUrls = [];
 let cards = [];
 
@@ -14,12 +15,23 @@ export const findPossiblePagination = async (page, worker, sellerUrl, invUrlArr)
   log({file, func, worker, message:'START'});
   try {
     for (let invUrl of invUrlArr) {
+      let paginationFlow = {
+        url:invUrl,
+        possibleCards: [],
+        caughtErrors: []
+      }
       try {
-        await pageNav(page, worker, `${sellerUrl}${invUrl}`);
+        let findPossiblePaginationNav1 = await pageNav(page, worker, `${sellerUrl}${invUrl}`);
+        if(findPossiblePaginationNav1 != true){
+          paginationFlow.caughtErrors.push({errorType: 'NAV ERROR', endpoint: `${sellerUrl}${invUrl}`, message:findPossiblePaginationNav1.message});
+          continue;
+        }
         let foundCards = await getVehCardUrls(page, worker);
         if(!foundCards.length){continue;}
+        paginationFlow.possibleCards = foundCards;
         cards.push.apply(cards, foundCards);
-        for(let paginationObj of await findAllPaginationUrls(page, worker)){
+        let allPag = await findAllPaginationUrls(page, worker);
+        for(let paginationObj of allPag){
           let pageIterator = await setPageIterator(paginationObj);
           let startIndex = await setPageStartIndex(page, worker, paginationObj);
           if(!pageIterator || !startIndex){continue;}
