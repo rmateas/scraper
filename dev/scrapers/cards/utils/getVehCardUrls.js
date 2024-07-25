@@ -8,7 +8,7 @@ export const getVehCardUrls = async (page, worker) => {
   let vehCardUrlArr = [];
 
   let allUrls = [...new Set(await page.$$eval('a', urls => urls.map(url => url.href)))];
-  //template3 Exclusion : \?mode
+  // template3 Specific Exclusion : \?mode
   let rejectUrlRx = /google|facebook|youtube|video|gallery|modal|^javascript|^#|^tel|\?mode|\?ai_(slide_show|ask_about)|comparison/i;
   let acceptUrlRx = /\/inventory\/|new|used|19[5-9]\d|20[0-3]\d/;
   let makeRx1 = /(?<=(\/|-|_)(19[5-9]|20[0-3])\d(\/|-|_|-\+-))\w+\b/ //template1
@@ -23,6 +23,7 @@ export const getVehCardUrls = async (page, worker) => {
   
   vehCardUrlArr.sort((a, b) => a.length - b.length);
 
+  // Check and remove urls that are for the same car but have different endings
   for(let i = 0; i < vehCardUrlArr.length; i++){
     let urlDupCheck = vehCardUrlArr[i];
     let dup = vehCardUrlArr.filter(url => {if(url.includes(urlDupCheck)){return url}})

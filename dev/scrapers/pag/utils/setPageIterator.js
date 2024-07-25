@@ -1,11 +1,12 @@
 import { log } from '../../../utils/logger/logger.js';
 
 const file = 'setPageIterator.js';
+const func = 'setPageIterator';
 
 export const setPageIterator = async (worker, pagObj) => {
-  log({file, func:'setPageIterator', worker, message:'START'});
+  log({file, func, worker, message:'START'});
+  let pageIterator;
   try {
-    let pageIterator;
     if(pagObj.iterators.length > 1){
       let pageIteratorCount = [];
       let countDiff;
@@ -19,9 +20,10 @@ export const setPageIterator = async (worker, pagObj) => {
     } else {
       pageIterator = pagObj.iterators[0] > 2 ? pagObj.iterators[0] : 1;
     }
-    log({file, func:'setPageIterator', worker, message:'SUCCESS | Exiting setPageIterator', obj:pageIterator});
-    return pageIterator;
+    log({file, func, worker, message:'SUCCESS | Exiting setPageIterator', obj:pageIterator});
   } catch (error) {
-    await log({level:'error', file, func:'setPageIterator', worker, message:'FAIL | Exiting setPageIterator', error});
+    await log({level:'error', file, func, worker, message:'FAIL | Exiting setPageIterator', error});
+  } finally {
+    return pageIterator;
   }
 }

@@ -56,24 +56,29 @@ export const getPagination = async (page, worker) => {
       vehNumPerPageNew: [],
       vehNumTotalUsed: 0,
       vehNumPerPageUsed: [],
-      possibleInventoryUrls: []
+      possibleInventoryUrls: [],
+      paginationFlow: [],
+      paginationErr: []
     }
   };
 
   try {
     let getPaginationNav1 = await pageNav(page, worker, seller.sellerUrl);
     if(getPaginationNav1 != true){
-      throw new Error(getPaginationNav1.message)
+      paginationInfo.scraped.paginationErr.push(getPaginationNav1.message);
+      throw new Error(getPaginationNav1.message);
     }
 
     let possibleInventoryUrls = await getPossibleInventoryUrls(page, worker);
     paginationInfo.scraped.possibleInventoryUrls = possibleInventoryUrls.allInvUrls;
     if(!possibleInventoryUrls.new.length || !possibleInventoryUrls.used.length){
+      paginationInfo.scraped.paginationErr.push('No Inventory URLs Found');
       throw new Error('No Inventory URLs Found');
     }
 
     let getBestPaginationOption = async (invUrl) => {
-      let { possiblePaginationUrls, cards } = await findPossiblePagination(page, worker, seller.sellerUrl, invUrl);
+      let { possiblePaginationUrls, cards, findPossiblePaginationFlow } = await findPossiblePagination(page, worker, seller.sellerUrl, invUrl);
+      paginationInfo.paginationFlow.push(findPossiblePaginationFlow);
       if(!possiblePaginationUrls.length){return;}
       cards.length && paginationInfo.cards.push.apply(paginationInfo.cards, cards);
       return await findBestPaginationOption(page, worker, possiblePaginationUrls);

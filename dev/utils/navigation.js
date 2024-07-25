@@ -4,6 +4,14 @@ import {log} from './logger/logger.js';
 
 const file = 'navigation.js';
 
+/**
+ * 
+ * @param {Object} page 
+ * @param {number} worker 
+ * @param {string} url
+ * 
+ * @return {Object} 
+ */
 export const pageNav = async (page, worker, url) => {
   log({file, func:'pageNav', worker, message:`START: ${url}`});
 
@@ -54,11 +62,11 @@ export const pageNav = async (page, worker, url) => {
       if(loadTrigger == 'domcontentloaded' && error.message.includes('Navigation timeout')) {
         return await attemptNav('networkidle2');
       } else {
-        log({level: 'fatal', file, func:'attempNav', worker, message:'FAIL NAV', error});
-        return {status: false, message: browErrHandler()};
+        log({level: 'error', file, func:'attempNav', worker, message:'FAIL NAV', error});
+        return {status: false, url, message: browErrHandler()};
       }
     }
-    return true;
+    return {status: true, url, message: 'SUCCESS'};
   }
 
   await attemptNav('domcontentloaded');
