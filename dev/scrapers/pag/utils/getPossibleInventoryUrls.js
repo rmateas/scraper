@@ -7,9 +7,9 @@ export const getPossibleInventoryUrls = async (page, worker) => {
   log({file, func, worker, message:'START'});
 
   let invUrls = {
+    allInvUrls: [],
     new: [],
-    used: [],
-    allInvUrls: []
+    used: []
   }
 
   try {
