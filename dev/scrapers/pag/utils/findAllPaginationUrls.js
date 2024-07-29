@@ -14,56 +14,34 @@ export const findAllPaginationUrls = async (page, worker) => {
 
   let pagination = {
     allPaginationUrlsArr: [],
-    possiblePaginationFilteredArr: []
+    possiblePaginationFilteredArr: [],
+    caughtErrors: []
   }
 
   let urlMatchRx = /\b_?(p(t|g|age(_no)?)?|start)(-|=)\d\d?\d?\d?\d?/;
-  let urlCardLimitRx = /&\b(pager|limit)=\d\d?\d?|\b(pager|limit)=\d\d?\d?\d?\d?&/;
   try {
     await page.$$eval('a', url => {urlMatchRx.test(url.href) && !/\/#/.test(url.href) && pagination.allPaginationUrlsArr.push(url.href)});
-    if(!pagination.allPaginationUrlsArr.length){return pagination;}
-    pagination.allPaginationUrlsArr = [...new Set(pagination.allPaginationUrlsArr)].sort((a,b)=>a.length-b.length);
-
-    pagination.allPaginationUrlsArr.forEach(url => {
-      //FIND POSSIBLE COMMON STRING FOR PAGINATION AND SEE IF IT EXISTS IN OTHER URLS
-      let initialUrlMatch = url.match(urlMatchRx)[0];
-      let iterator = +initialUrlMatch.replace(/[^\d]/g, '');
-      let urlMatch = initialUrlMatch.replace(/\d/g, '');
-      let replaceRx = new RegExp(`(?<=(\\b${urlMatch}))\\d\\d?\\d?\\d?\\d?`);
-      let possibleUrl = url.replace(replaceRx, '~~~');
-      // possibleUrl = !/^http/.test(url) ? location.origin+possibleUrl : possibleUrl;
-      
-      // FIND CARD LIMIT PER PAGE IF EXISTS AND PART OF URL
-      // if(urlCardLimitRx.test(possibleUrl)){
-      //   let limitMatch = url.match(urlCardLimitRx)[0];
-      //   let cardLimit = +limitMatch.replace(/[^\d]/g, '');
-      //   let limitMatched = limitMatch.replace(/\d\d?\d?\d?\d?/, '@@@');
-      //   limitMatched = /&$/.test(limitMatched) ? `&${limitMatched.replace(/&/,'')}` : limitMatched;
-      //   let limitUrl = possibleUrl.replace(limitMatch, '');
-      //   let exists = pagination.possiblePaginationFilteredArr.find(el => {
-      //     if(el.url == limitUrl){
-      //       el.limitMatch = limitMatched;
-      //       el.limit = 'limit' in el ? el.limit < cardLimit ? cardLimit: el.limit : cardLimit;
-      //     }
-      //     return true;
-      //   });
-      //   !exists && pagination.possiblePaginationFilteredArr.push({url:limitUrl, iterators:[iterator], limit:cardLimit, limitMatch:limitMatched});
-      // } else {
-        let exists = pagination.possiblePaginationFilteredArr.find(el => el.url === possibleUrl && el.iterators.push(iterator));
-        !exists && pagination.possiblePaginationFilteredArr.push({url:possibleUrl, iterators:[iterator]});
-      // }
-    });
-    // for(let url of pagination.possiblePaginationFilteredArr){
-    //   if('limit' in url){
-    //     url = {url: `${url.url}${url.limitMatch.replace(/@@@/, url.limit)}`, iterators:url.iterators}
-    //   }
-    // }
   } catch (error) {
-    await log({level:'error', file, func, worker, message:'ERROR GETTING PAGINATION URLS', error});
-  } finally {
-    return pagination;
+    pagination.caughtErrors.push({errorType:'CONTENT ERROR', message:'ERROR GETTING PAGINATION URLS', error});
   }
-  
+
+  if(!pagination.allPaginationUrlsArr.length){return pagination;}
+  pagination.allPaginationUrlsArr = [...new Set(pagination.allPaginationUrlsArr)].sort((a,b)=>a.length-b.length);
+
+  // FIND POSSIBLE COMMON STRING FOR PAGINATION AND SEE IF IT EXISTS IN OTHER URLS
+  for(let url of pagination.allPaginationUrlsArr){
+    let initialUrlMatch = url.match(urlMatchRx)[0];
+    let iterator = +initialUrlMatch.replace(/[^\d]/g, '');
+    let urlMatch = initialUrlMatch.replace(/\d/g, '');
+    let replaceRx = new RegExp(`(?<=(\\b${urlMatch}))\\d\\d?\\d?\\d?\\d?`);
+    let possibleUrl = url.replace(replaceRx, '~~~');
+    // Looks to see if the portioned url without the pagination number already exists, if it does it will just add the pagination number to an existing array. Otherwise, add another array element with a url and iterator properties
+    let exists = pagination.possiblePaginationFilteredArr.find(el => el.url === possibleUrl && el.iterators.push(iterator));
+    !exists && pagination.possiblePaginationFilteredArr.push({url:possibleUrl, iterators:[iterator]});
+  };
+
+  return pagination;
+}
   
 
 
@@ -114,4 +92,4 @@ export const findAllPaginationUrls = async (page, worker) => {
   //   await log({level:'error', file, func:'findAllPaginationUrls', worker, message:'FAIL | Exiting findAllPaginationUrls', error});
   //   throw new Error(`Error getting possible pagination URLs`);
   // }
-}
+// }

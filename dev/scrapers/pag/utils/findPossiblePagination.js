@@ -7,9 +7,9 @@ import { getVehCardUrls } from '../../cards/utils/getVehCardUrls.js';
 
 const file = 'findPossiblePagination.js';
 const func = 'findPossiblePagination';
-let findPossiblePaginationFlow = []
 let possiblePaginationUrls = [];
 let cards = [];
+let findPossiblePaginationFlow = [];
 
 export const findPossiblePagination = async (page, worker, sellerUrl, invUrlArr) => {
   log({file, func, worker, message:'START'});
