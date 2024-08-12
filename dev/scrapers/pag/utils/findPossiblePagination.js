@@ -19,8 +19,8 @@ export const findPossiblePagination = async (page, worker, sellerUrl, invUrlArr)
         url:invUrl,
         allPaginationUrlOptions: [],
         filteredPaginationObjects: [],
-        pageIterator,
-        startIndexFlow,
+        pageIterator: null,
+        startIndexFlow: {},
         possibleCards: [],
         caughtErrors: []
       }
@@ -31,23 +31,22 @@ export const findPossiblePagination = async (page, worker, sellerUrl, invUrlArr)
           findPossiblePaginationFlow.push(paginationFlow);
           continue;
         }
-        let foundCards = await getVehCardUrls(page, worker);
-        if(!foundCards.length){
-          paginationFlow.caughtErrors.push({errorType: 'CONTENT', endpoint: `${sellerUrl}${invUrl}`, message: 'NO CARDS FOUND'});
+        let {cards:foundCards, error} = await getVehCardUrls(page, worker);
+        if(error || !foundCards.length){
+          error != null ? paginationFlow.caughtErrors.push(error) : paginationFlow.caughtErrors.push({errorType: 'CONTENT', endpoint: `${sellerUrl}${invUrl}`, message: 'NO CARDS FOUND'});
           findPossiblePaginationFlow.push(paginationFlow);
           continue;
         }
         paginationFlow.possibleCards = foundCards;
         cards.push.apply(cards, foundCards);
-        let allPag = await findAllPaginationUrls(page, worker);
-        paginationFlow.allPaginationUrlOptions = allPag.allPaginationUrlsArr;
-        paginationFlow.filteredPaginationObjects = allPag.possiblePaginationFilteredArr;
-        if(!allPag.possiblePaginationFilteredArr.length){
-          paginationFlow.caughtErrors.push({errorType: 'CONTENT', endpoint: `${sellerUrl}${invUrl}`, message: 'NO VIABLE PAGINATION OPTIONS'});
+        let findAllPaginationUrlsCaughtErrors;
+        ({allUrls:paginationFlow.allPaginationUrlOptions, filteredUrls:paginationFlow.filteredPaginationObjects, caughtErrors:findAllPaginationUrlsCaughtErrors} = await findAllPaginationUrls(page, worker));
+        if(findAllPaginationUrlsCaughtErrors.length || !paginationFlow.filteredPaginationObjects.length){
+          findAllPaginationUrlsCaughtErrors.length ? paginationFlow.caughtErrors.push(...findAllPaginationUrlsCaughtErrors) : paginationFlow.caughtErrors.push({errorType: 'CONTENT', endpoint: `${sellerUrl}${invUrl}`, message: 'NO VIABLE PAGINATION OPTIONS'});
           findPossiblePaginationFlow.push(paginationFlow);
           continue;
         }
-        for(let paginationObj of allPag.possiblePaginationFilteredArr){
+        for(let paginationObj of paginationFlow.filteredPaginationObjects){
           paginationFlow.pageIterator = await setPageIterator(worker, paginationObj);
           !paginationFlow.pageIterator && paginationFlow.caughtErrors.push({errorType: 'CONTENT', endpoint: `${sellerUrl}${invUrl}`, message: 'NO ABLE TO SET PAGE ITERATOR'});
           paginationFlow.startIndexFlow = await setPageStartIndex(page, worker, paginationObj); 
@@ -61,8 +60,10 @@ export const findPossiblePagination = async (page, worker, sellerUrl, invUrlArr)
         findPossiblePaginationFlow.push(paginationFlow);
         continue;
       }
+      console.log(paginationFlow);
     }
     cards = [...new Set(cards)];
+    console.log(possiblePaginationUrls);
     log({file, func, worker, message:'SUCCESS | Exiting findPossiblePagination', obj:possiblePaginationUrls});
   } catch (error) {
     await log({level:'error', file, func, worker, message:'FAIL | Exiting findPossiblePagination', error});

@@ -13,31 +13,31 @@ export const findAllPaginationUrls = async (page, worker) => {
   log({level:'debug', file, func, worker, message:'START'});
 
   let pagination = {
-    allPaginationUrlsArr: [],
-    possiblePaginationFilteredArr: [],
+    allUrls: [],
+    filteredUrls: [],
     caughtErrors: []
   }
 
   let urlMatchRx = /\b_?(p(t|g|age(_no)?)?|start)(-|=)\d\d?\d?\d?\d?/;
   try {
-    await page.$$eval('a', url => {urlMatchRx.test(url.href) && !/\/#/.test(url.href) && pagination.allPaginationUrlsArr.push(url.href)});
+    await page.$$eval('a', url => {urlMatchRx.test(url.href) && !/\/#/.test(url.href) && pagination.allUrls.push(url.href)});
   } catch (error) {
     pagination.caughtErrors.push({errorType:'CONTENT ERROR', message:'ERROR GETTING PAGINATION URLS', error});
   }
 
-  if(!pagination.allPaginationUrlsArr.length){return pagination;}
-  pagination.allPaginationUrlsArr = [...new Set(pagination.allPaginationUrlsArr)].sort((a,b)=>a.length-b.length);
+  if(!pagination.allUrls.length){return pagination;}
+  pagination.allUrls = [...new Set(pagination.allUrls)].sort((a,b)=>a.length-b.length);
 
   // FIND POSSIBLE COMMON STRING FOR PAGINATION AND SEE IF IT EXISTS IN OTHER URLS
-  for(let url of pagination.allPaginationUrlsArr){
+  for(let url of pagination.allUrls){
     let initialUrlMatch = url.match(urlMatchRx)[0];
     let iterator = +initialUrlMatch.replace(/[^\d]/g, '');
     let urlMatch = initialUrlMatch.replace(/\d/g, '');
     let replaceRx = new RegExp(`(?<=(\\b${urlMatch}))\\d\\d?\\d?\\d?\\d?`);
     let possibleUrl = url.replace(replaceRx, '~~~');
     // Looks to see if the portioned url without the pagination number already exists, if it does it will just add the pagination number to an existing array. Otherwise, add another array element with a url and iterator properties
-    let exists = pagination.possiblePaginationFilteredArr.find(el => el.url === possibleUrl && el.iterators.push(iterator));
-    !exists && pagination.possiblePaginationFilteredArr.push({url:possibleUrl, iterators:[iterator]});
+    let exists = pagination.filteredUrls.find(el => el.url === possibleUrl && el.iterators.push(iterator));
+    !exists && pagination.filteredUrls.push({url:possibleUrl, iterators:[iterator]});
   };
 
   return pagination;

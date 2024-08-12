@@ -58,7 +58,7 @@ export const log = async (options) => {
  * @param {string} message 
  * @param {Error|null} error 
 */
-const writeToConsole = (levelName, file, func, worker, message, obj, error = null) => {
+const writeToConsole = (levelName, file, func, worker, message, obj = null, error = null) => {
   
   const level = config.levels[levelName];
   let chalkFunction = level.color.includes('#') ? chalk.hex(level.color)
@@ -67,7 +67,7 @@ const writeToConsole = (levelName, file, func, worker, message, obj, error = nul
   
   const header = `[${addPadding(worker.toString(), 2)}][${addPadding(levelName.toUpperCase(), 10)}][${getFormattedCurrentDate()}][${addPadding(file)}][${addPadding(func)}]`;
   
-  console.log(`${chalkFunction(header)}: ${chalkFunction(message)} ${obj || error ? '\n' : ''} `, obj ? obj : error ? error : '');
+  console.log(`${chalkFunction(header)}: ${chalkFunction(message)} ${obj != null || error != null ? '\n' : ''} `, obj != null ? obj : error ? error != null : '');
 }
 
 const writeToDB = async (scraper, level, message, error) => {

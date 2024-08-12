@@ -44,7 +44,7 @@ export const pageNav = async (page, worker, url) => {
   });
 
   let browErrHandler = () => {
-    return reqFail?.errorText == 'net::ERR_TUNNEL_CONNECTION_FAILED' ? `FAIL | No response from site server | ${reqFail.errorText}` : reqFail?.errorText || 'UnknownReason';
+    return reqFail?.errorText == 'net::ERR_TUNNEL_CONNECTION_FAILED' ? `FAIL | No response from site server | ${reqFail.errorText}` : `${reqFail?.errorText}` || 'UnknownReason';
   }
 
   let attemptNav = async (loadTrigger) => {
@@ -52,24 +52,22 @@ export const pageNav = async (page, worker, url) => {
     try {
       res = await page.goto(url, {waitUntil:loadTrigger, timeout:20000});
       if (await isBotDetector()) {
-        return {status: false, message: `FAIL | Stuck on bot validation | ${url}`};
+        return {status: false, url, loadTrigger, message: `FAIL | Stuck on bot validation`};
       } else if (await isCaptcha()) {
-        return {status: false, message: `FAIL | Captcha | ${url}`};
+        return {status: false, url, loadTrigger, message: `FAIL | Captcha`};
       } else if (await isRedirect(res)) {
-        return {status: false, message: 'FAIL | Page redirect'};
+        return {status: false, url, loadTrigger, message: 'FAIL | Page redirect'};
       }
     } catch (error) {
       if(loadTrigger == 'domcontentloaded' && error.message.includes('Navigation timeout')) {
         return await attemptNav('networkidle2');
       } else {
         log({level: 'error', file, func:'attempNav', worker, message:'FAIL NAV', error});
-        return {status: false, url, message: browErrHandler()};
+        return {status: false, url, loadTrigger, message: browErrHandler()};
       }
     }
-    return {status: true, url, message: 'SUCCESS'};
+    return {status: true, url, loadTrigger, message: 'SUCCESS'};
   }
 
-  await attemptNav('domcontentloaded');
-  log({level:'debug', file, func:'pageNav', worker, message:`Nav to ${url}`});
-  // await page.goto(`${process.env.HOST}/seller/arrlen/${process.argv[2]}`);
+  return await attemptNav('domcontentloaded');
 };

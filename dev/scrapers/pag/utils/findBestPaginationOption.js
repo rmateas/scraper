@@ -10,21 +10,24 @@ export const findBestPaginationOption = async (page, worker, inventoryUrlArray) 
     allPagOptions:[],
     bestPagOption:null
   };
+  let tempArr = [];
   try {
-    for(let i = 0; i < inventoryUrlArray.length; i++){
+    for(let url of inventoryUrlArray){
       let getPagination = {
-        url: inventoryUrlArray[i],
-        cards,
-      };
-      let foundCards = await getCardsFromDealer(page, worker, inventoryUrlArray[i]);
-      inventoryUrlArray[i].cards = getPagination.cards.vehCardArr;
-      inventoryUrlArray[i].cardsPerPageArr = foundCards.vehCardsPerPageArr;
+        url,
+        cardsUrls: [],
+        cardsNum: 0
+      }
+      let foundCards = await getCardsFromDealer(page, worker, url);
+      getPagination.cardsUrls = foundCards.vehCardArr;
+      getPagination.cardsNum = foundCards.vehCardsPerPageArr;
+      tempArr.push(getPagination);
     }
   } catch (error) {
     await log({level:'error', file, func, worker, message:'FAIL | EXITING setPag', error});
   } finally {
-    let bestPagOption = inventoryUrlArray.find(elm => elm.cards.length == Math.max(...inventoryUrlArray.map(el => el.cards.length)));
+    let bestPagOption = tempArr.find(elm => elm.cardsNum == Math.max(...tempArr.map(el => el.cardsNum)));
     log({file, func, worker, message:'SUCCESS | EXITING setPag', obj:[bestPagOption]});
-    return [bestPagOption, allPagOptions];
+    return findBestPagOptionFlow;
   }
 }

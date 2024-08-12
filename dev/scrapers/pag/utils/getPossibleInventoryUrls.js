@@ -7,13 +7,14 @@ export const getPossibleInventoryUrls = async (page, worker) => {
   log({file, func, worker, message:'START'});
 
   let invUrls = {
-    allInvUrls: [],
-    new: [],
-    used: []
+    allUrls: [],
+    newUrls: [],
+    usedUrls: [],
+    error: null
   }
 
   try {
-    invUrls.allInvUrls = await page.evaluate(() => {
+    invUrls.allUrls = await page.evaluate(() => {
       let possibleUrlArr = [];
       let possibleUrlsSnap = document.evaluate(`//a/@href[contains(., "/")]`, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
       let urlRx = new RegExp(`\^\(\(https://www.\)\?${location.href}\|/\)`);
@@ -31,17 +32,18 @@ export const getPossibleInventoryUrls = async (page, worker) => {
     })
   } catch (error) {
     await log({level:'fatal', file, func, worker, message:'Error getting possible inventoy urls', error});
+    invUrls.error = {level:'fatal', file, func, worker, type:'CONTENT', message:'Error getting possible inventoy urls', error};
     return invUrls;
   }
 
-  for (let url of invUrls.allInvUrls) {
+  for (let url of invUrls.allUrls) {
     if (/^\/newandusedcars\?clearall=1$/.test(url)) {
-      invUrls.new = [];
-      invUrls.used = [url];
+      invUrls.newUrls = [];
+      invUrls.usedUrls = [url];
       break;
     }
     if (/\/((new|used)-(inventory|vehicles))((\/index)?[^\/]+)?$/.test(url) || /\/(search|new|used|(view-)?inventory|vehicles|pre-?owned)([^\/]+)?$/.test(url) || /\/search\/(new|used)(\w|-)+?\/\?cy=\w{5,6}&tp=(new|used)$/.test(url)) {
-      /new/i.test(url) ? invUrls.new.push(url) : invUrls.used.push(url);
+      /new/i.test(url) ? invUrls.newUrls.push(url) : invUrls.usedUrls.push(url);
     }
   }
 
@@ -62,13 +64,13 @@ export const getPossibleInventoryUrls = async (page, worker) => {
     }
 
     if(smallUrls.length){
-      isNewInv ? invUrls.new = smallUrls : invUrls.used = smallUrls;
+      isNewInv ? invUrls.newUrls = smallUrls : invUrls.usedUrls = smallUrls;
     } else {
-      isNewInv ? invUrls.new = urls.slice(0,5) : invUrls.used = urls.slice(0,5)
+      isNewInv ? invUrls.newUrlsUrls = urls.slice(0,5) : invUrls.usedUrls = urls.slice(0,5)
     }
     log({file, func:'slimUrls', worker, message:`SLIMMING URLS FOR ${isNewInv ? 'NEW' : 'USED'}`})
   }
-  if(invUrls.new.length > 5){slimUrls(invUrls.new, true);}
-  if(invUrls.used.length > 5){slimUrls(invUrls.used);}
+  if(invUrls.newUrls.length > 5){slimUrls(invUrls.newUrls, true);}
+  if(invUrls.usedUrls.length > 5){slimUrls(invUrls.usedUrls);}
   return invUrls;
 };

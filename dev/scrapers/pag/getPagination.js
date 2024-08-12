@@ -28,7 +28,7 @@ import { getPossibleInventoryUrls } from './utils/getPossibleInventoryUrls.js';
  * Set pagination URLs for new and used as well as a start index and and iterator if available
  *  
  */
-export const getPagination = async (page, worker) => {
+export const getPagination = async (page, worker, proxy) => {
   const file = 'getPagination.js';
   const func = 'getPagination';
   log({file, func, worker, message:'START'});
@@ -40,15 +40,16 @@ export const getPagination = async (page, worker) => {
 
   let seller = (await getAPI(worker, `${process.env.HOST}/seller/getpag`))[0];
 
-  let paginationInfo = {
+  let pagInfo = {
     sellerId:seller.sellerId,
     sellerTemplate:seller.sellerTemplate,
     pageInvUrlNew: undefined,
     pageInvUrlUsed: undefined,
     pageStartIndex: undefined,
     pageIterator: undefined,
+    residentialProxy: false,
     cards: [],
-    scraped:{
+    scrape:{
       scrapeDate:new Date(),
       scrapeOutcome:'SUCCESS',
       vehNumTotal: 0,
@@ -56,44 +57,54 @@ export const getPagination = async (page, worker) => {
       vehNumPerPageNew: [],
       vehNumTotalUsed: 0,
       vehNumPerPageUsed: [],
-      possibleInventoryUrls: [],
+      possibleInvUrls:{
+        allUrls: [],
+        newUrls: [],
+        usedUrls: []
+      },
       paginationFlow: [],
-      paginationErr: []
+      allPaginationOptions: [],
+      bestPaginationOption: {},
+      scrapeErrors: [],
+      proxy
     }
   };
 
   try {
     let getPaginationNav1 = await pageNav(page, worker, seller.sellerUrl);
-    if(getPaginationNav1 != true){
-      paginationInfo.scraped.paginationErr.push(getPaginationNav1.message);
-      throw new Error(getPaginationNav1.message);
+    if(getPaginationNav1.status != true){
+      pagInfo.scrape.scrapeErrors.push(getPaginationNav1);
+      throw {level:'fatal', file, func, worker, type:'NAV', message:getPaginationNav1.message};
     }
 
-    let possibleInventoryUrls = await getPossibleInventoryUrls(page, worker);
-    paginationInfo.scraped.possibleInventoryUrls = possibleInventoryUrls.allInvUrls;
-    if(!possibleInventoryUrls.new.length || !possibleInventoryUrls.used.length){
-      paginationInfo.scraped.paginationErr.push('No Inventory URLs Found');
-      throw new Error('No Inventory URLs Found');
+    let getPossibleInventoryUrlsError;
+    ({allUrls:pagInfo.scrape.possibleInvUrls.allUrls, newUrls:pagInfo.scrape.possibleInvUrls.newUrls, usedUrls:pagInfo.scrape.possibleInvUrls.usedUrls, error:getPossibleInventoryUrlsError} = await getPossibleInventoryUrls(page, worker));
+    getPossibleInventoryUrlsError != null && pagInfo.scrape.scrapeErrors.push(getPossibleInventoryUrlsError);
+    if(!pagInfo.scrape.possibleInvUrls.newUrls.length && !pagInfo.scrape.possibleInvUrls.usedUrls.length){
+      throw {level:'fatal', file, func, worker, type:'CONTENT', message:'No Inventory URLs Found'};
     }
 
-    let getBestPaginationOption = async (invUrl) => {
-      let { possiblePaginationUrls, cards, findPossiblePaginationFlow } = await findPossiblePagination(page, worker, seller.sellerUrl, invUrl);
-      paginationInfo.paginationFlow.push(findPossiblePaginationFlow);
+    let getBestPaginationOption = async (invUrlsArr) => {
+      let { possiblePaginationUrls, cards, findPossiblePaginationFlow } = await findPossiblePagination(page, worker, seller.sellerUrl, invUrlsArr);
+      pagInfo.scrape.paginationFlow.push(findPossiblePaginationFlow);
       if(!possiblePaginationUrls.length){return;}
-      cards.length && paginationInfo.cards.push.apply(paginationInfo.cards, cards);
-      return await findBestPaginationOption(page, worker, possiblePaginationUrls);
+      cards.length && pagInfo.cards.push.apply(pagInfo.cards, cards);
+      let bestPaginationOption = await findBestPaginationOption(page, worker, possiblePaginationUrls);
+      pagInfo.scrape.bestPaginationOption = bestPaginationOption.bestPagOption;
+      pagInfo.scrape.allPaginationOptions = bestPaginationOption.allPagOptions;
+      return bestPaginationOption.bestPagOption;
     }
 
     // FIND POSSIBLE PAGINATION NEW 
-    let getNewInvUrl = possibleInventoryUrls.new.length && await getBestPaginationOption(possibleInventoryUrls.new);
+    let getNewInvUrl = pagInfo.scrape.possibleInvUrls.newUrls.length && await getBestPaginationOption(pagInfo.scrape.possibleInvUrls.newUrls);
 
     // FIND POSSIBLE PAGINATION USED
     let getUsedInvUrl;
-    if(possibleInventoryUrls.used.length){
-      for(let i = 0; i < possibleInventoryUrls.length;){
-        /all/i.test(possibleInventoryUrls.used[i]) ? /(?=.*all)(?=.*used)/.test(possibleInventoryUrls.used[i]) ? i++ : possibleInventoryUrls.used.splice(i, 1) : i++;
+    if(pagInfo.scrape.possibleInvUrls.usedUrls.length){
+      for(let i = 0; i < pagInfo.scrape.possibleInvUrls.usedUrls.length;){
+        /all/i.test(pagInfo.scrape.possibleInvUrls.usedUrls[i]) ? /(?=.*all)(?=.*used)/.test(pagInfo.scrape.possibleInvUrls.usedUrls[i]) ? i++ : pagInfo.scrape.possibleInvUrls.usedUrls.splice(i, 1) : i++;
       }
-      getUsedInvUrl = await getBestPaginationOption(possibleInventoryUrls.used);
+      getUsedInvUrl = await getBestPaginationOption(pagInfo.scrape.possibleInvUrls.usedUrls);
     }
 
     let setInfo = (prop) => {
@@ -113,17 +124,18 @@ export const getPagination = async (page, worker) => {
       // WRITE TO DB THAT THERE WAS NO SUCCESS IN FINDING AND SETTING PAGINATION
     }
 
-    paginationInfo.pageInvUrlNew = getNewInvUrl?.url;
-    paginationInfo.pageInvUrlUsed = getUsedInvUrl?.url;
-    paginationInfo.pageStartIndex = setInfo('startIndex');
-    paginationInfo.pageIterator = setInfo('iterator');
+    pagInfo.pageInvUrlNew = getNewInvUrl?.url;
+    pagInfo.pageInvUrlUsed = getUsedInvUrl?.url;
+    pagInfo.pageStartIndex = setInfo('startIndex');
+    pagInfo.pageIterator = setInfo('iterator');
 
-    paginationInfo.cards = [...new Set(paginationInfo.cards)];
+    pagInfo.cards = [...new Set(pagInfo.cards)];
   } catch (error) {
-    paginationInfo.scraped.scrapeErr = { errMessage: error.message };
-    paginationInfo.scraped.scrapeOutcome = 'FAIL';
+    pagInfo.scrape.scrapeErrors.push({level:'error', file, func, worker, message:`FAIL | ERROR FINDING PAGINATION FOR ${seller.sellerUrl}`, error});
+    pagInfo.scrape.scrapeOutcome = 'FAIL';
     await log({level:'error', file, func, worker, message:`FAIL | ERROR FINDING PAGINATION FOR ${seller.sellerUrl}`, error});
   }finally {
-    await postAPI(worker, `${process.env.HOST}/seller/updatepag`, JSON.stringify(paginationInfo));
+    console.log(pagInfo);
+    await postAPI(worker, `${process.env.HOST}/seller/updatepag`, JSON.stringify(pagInfo));
   }
 }
