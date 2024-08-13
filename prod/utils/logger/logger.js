@@ -1,111 +1,17 @@
-import path from 'path';
-import readline from 'readline';
-import { fileURLToPath } from 'url';
-import { existsSync, mkdirSync, appendFileSync, createReadStream } from 'fs';
 
 import chalk from 'chalk';
 import moment from 'moment';
 
 import config from './config.js';
+import { postAPI } from '../apiUtils.js';
 
-//Needed to make __dirname for absolute path work
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-/**
- * Main Logging Function
- * @param {object} options 
- * OBJECT { level, message, error }
- */
-
-export const log = (options) => {
-  const levelName = getLevelName(options.level);
-  let message = options.message ?? 'Unidentified Error';
-  const error = options.err ?? null;
-
-  //Always log to the console
-  writeToConsole(levelName, message, error);
-
-  if(config.levels[levelName].writeToDB){
-    writeToDB(levelName, message);
-  }
-
-}
 
 /**
- * Write formatted message to the console
- * @param {string} levelName 
- * @param {string} message 
- * @param {Error|null} error 
- */
-const writeToConsole = (levelName, message, error = null) => {
-
-  const level = config.levels[levelName];
-  let chalkFunction = level.color.includes('#') ? chalk.hex(level.color)
-    : Array.isArray(level.color) ? chalk.rgb(level.color[0], level.color[1], level.color[2])
-    : chalk[level.color];
-
-  message = error ? `${chalkFunction(`${error.message} \n ${error.stack}`)}` : message;
-  const header = `[${levelName.toUpperCase()}][${getFormattedCurrentDate()}]`;
-
-  console.log(`${chalkFunction(header)}: ${chalkFunction(message)}`);
-}
-
-/**
- * Write the formatted message to a file
- * @param {string} level
- * @param {string} message 
- */
-const writeToDB = (level, message) => {
-
-  console.log('write to db');
-  // const logsDir = `${__dirname}/logs`;
-
-  // const data = `{"level": "${level.toUpperCase()}", "message": "${message}"}, "timestamp": "${getFormattedCurrentDate()}"\r\n`;
-
-  // if(!existsSync(logsDir)){
-  //   mkdirSync(logsDir)
-  // }
-
-  // const options = {
-  //   encoding: 'utf8',
-  //   mode: 438
-  // }
-
-  // appendFileSync(`${logsDir}/${level}.log`, data, options);
-}
-
-/**
- * Read data from a log
- * @param {string} fileName
- * @return Promise 
- */
-export  const readLog = async (fileName = null) => {
-  const logsDir = `${__dirname}/logs`;
-
-  return new Promise((resolve, reject) => {
-    const file = path.join(logsDir, fileName.includes('.') ? fileName : `${fileName}.log`);
-    const lineReader = readline.createInterface({
-      input: createReadStream(file)
-    });
-
-    const logs = [];
-
-    lineReader.on('line', (line) => {
-      logs.push(JSON.parse(line))
-    });
-
-    lineReader.on('close', () => {
-      console.log(chalk.yellow(`${fileName.toUpperCase} Logs have been accessed`));
-      console.table(logs);
-      resolve(logs);
-    });
-
-    lineReader.on('error', (error) => {
-      reject(error)
-    })
-
-  });
-}
+ * Adds padding tp logs for uniformity
+ * @param {string} padStr 
+ * @returns string
+*/
+let addPadding = (padStr, pad = 30) => padStr.padStart(padStr.length + Math.ceil((pad - padStr.length)/2)).padEnd(padStr.length + (pad - padStr.length));
 
 /**
  * Get level name
@@ -121,92 +27,58 @@ const getLevelName = level => level && config.levels.hasOwnProperty(level) ? lev
 const getFormattedCurrentDate = () => moment(new Date()).format(moment.HTML5_FMT.DATETIME_LOCAL_SECONDS);
 
 /**
- * Helper function for printing ACCESS level logs
- * @param {string} message 
- */
-export const access = (message) => {
-  log({level:'access', message});
-}
+ * Main Logging Function
+ * @param {object} options 
+ * OBJECT { level, file, func, worker, message, obj, error }
+*/
 
-/**
- * Helper function for printing WARN level logs
- * @param {string} message 
- */
-export const warn = (message) => {
-  log({level:'warn', message});
-}
-
-/**
- * Helper function for printing DEBUG level logs
- * @param {string} message 
- */
-export const debug = (message) => {
-  log({level:'debug', message});
-}
-
-/**
- * Helper function for printing SYSTEM level logs
- * @param {string} message 
- */
-export const system = (message) => {
-  log({level:'system', message});
-}
-
-/**
- * Helper function for printing DATABASE level logs
- * @param {string} message 
- */
-export const database = (message) => {
-  log({level:'database', message});
-}
-
-/**
- * Helper function for printing event level logs
- * @param {string} message 
- */
-export const event = (message) => {
-  log({level:'event', message});
-}
-
-/**
- * Helper function for printing INFO level logs
- * @param {string} message 
- */
-export const info = (message) => {
-  log({level:'info', message});
-}
-
-/**
- * Helper function for printing ERROR level logs
- * @param {string} message 
- */
-export const error = (error) => {
-
-  if(typeof error === 'string'){
-    log({level:'error', message:error});
-  } else {
-    log({level:'error', error});
+export const log = async (options) => {
+  const levelName = getLevelName(options.level);
+  if(levelName == 'info' && !process.env.DEBUG){return;}
+  const message = options.message ?? 'Unidentified Error';
+  const error = options.error ?? null;
+  const file = options.file ?? '*****SPECIFY FILE*****';
+  const func = options.func ?? '*****SPECIFY FUNC*****';
+  const worker = options.worker ?? 0;
+  const scraper = options.scraper ?? 'all';
+  const obj = options.obj ?? null;
+  
+  //Always log to the console
+  writeToConsole(levelName, file, func, worker, message, obj, error);
+  
+  if(config.levels[levelName].writeToDB){
+    await writeToDB(scraper, levelName, message, error);
   }
-
-
+  
 }
 
 /**
- * Helper function for printing FATAL level logs
+ * Write formatted message to the console
+ * @param {string} levelName 
  * @param {string} message 
- */
-export const fatal = (error) => {
+ * @param {Error|null} error 
+*/
+const writeToConsole = (levelName, file, func, worker, message, obj = null, error = null) => {
+  
+  const level = config.levels[levelName];
+  let chalkFunction = level.color.includes('#') ? chalk.hex(level.color)
+  : Array.isArray(level.color) ? chalk.rgb(level.color[0], level.color[1], level.color[2])
+  : chalk[level.color];
+  
+  const header = `[${addPadding(worker.toString(), 2)}][${addPadding(levelName.toUpperCase(), 10)}][${getFormattedCurrentDate()}][${addPadding(file)}][${addPadding(func)}]`;
+  
+  console.log(`${chalkFunction(header)}: ${chalkFunction(message)} ${obj != null || error != null ? '\n' : ''} `, obj != null ? obj : error ? error != null : '');
+}
 
-  if(typeof error === 'string'){
-    log({level:'fatal', message:error});
-  } else {
-    log({level:'fatal', error})
-  }
+const writeToDB = async (scraper, level, message, error) => {
+  // Live API
+  await postAPI(0, `${process.env.HOST}/error/posterror`, JSON.stringify({scraper, level, message, error:error.stack, date: getFormattedCurrentDate()}));
+  // Local
+  // await postAPI(`http://localhost:8080/error/posterror`, JSON.stringify({scraper, level, message, error:error.stack, date: getFormattedCurrentDate()}))
 }
 
 
 
-log({message:'Hello World'});
 
 
 
@@ -221,6 +93,72 @@ log({message:'Hello World'});
 
 
 
+// FUNCTIONS FOR READING AND WRITING LOG FILES
+
+// Imports necessary for reading and writing to file
+// import path from 'path';
+// import { fileURLToPath } from 'url';
+// import readline from 'readline';
+// import { existsSync, mkdirSync, appendFileSync, createReadStream } from 'fs';
+
+// Needed to make __dirname for absolute path work
+// const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+/**
+ * Write the formatted message to a file
+ * @param {string} level
+ * @param {string} message 
+*/
+// const writeToFile = (level, message) => {
+  
+  // const logsDir = `${__dirname}/logs`;
+  
+  // const data = `{"level": "${level.toUpperCase()}", "message": "${message}"}, "timestamp": "${getFormattedCurrentDate()}"\r\n`;
+  
+  // if(!existsSync(logsDir)){
+    //   mkdirSync(logsDir)
+    // }
+    
+    // const options = {
+      //   encoding: 'utf8',
+      //   mode: 438
+      // }
+      
+      // appendFileSync(`${logsDir}/${level}.log`, data, options);
+    // }
+    
+    /**
+     * Read data from a log
+     * @param {string} fileName
+     * @return Promise 
+    */
+// export  const readLog = async (fileName = null) => {
+//   const logsDir = `${__dirname}/logs`;
+
+//   return new Promise((resolve, reject) => {
+//     const file = path.join(logsDir, fileName.includes('.') ? fileName : `${fileName}.log`);
+//     const lineReader = readline.createInterface({
+//       input: createReadStream(file)
+//     });
+
+//     const logs = [];
+
+//     lineReader.on('line', (line) => {
+//       logs.push(JSON.parse(line))
+//     });
+
+//     lineReader.on('close', () => {
+//       console.log(chalk.yellow(`${fileName.toUpperCase} Logs have been accessed`));
+//       console.table(logs);
+//       resolve(logs);
+//     });
+
+//     lineReader.on('error', (error) => {
+//       reject(error)
+//     })
+
+//   });
+// }
 
 
 
@@ -229,6 +167,120 @@ log({message:'Hello World'});
 
 
 
+
+
+
+
+
+
+// HELPER FUNCTIONS THAT CAN BE BUILT OUT FOR BETTER FUNCTIONALITY BUT NOT REALLY NECESSARY
+
+// /**
+//  * Helper function for printing ACCESS level logs
+//  * @param {string} message 
+//  */
+// export const access = (message) => {
+//   log({level:'access', message});
+// }
+
+// /**
+//  * Helper function for printing WARN level logs
+//  * @param {string} message 
+//  */
+// export const warn = (message) => {
+//   log({level:'warn', message});
+// }
+
+// /**
+//  * Helper function for printing DEBUG level logs
+//  * @param {string} message 
+//  */
+// export const debug = (message) => {
+//   log({level:'debug', message});
+// }
+
+// /**
+//  * Helper function for printing SYSTEM level logs
+//  * @param {string} message 
+//  */
+// export const system = (message) => {
+//   log({level:'system', message});
+// }
+
+// /**
+//  * Helper function for printing DATABASE level logs
+//  * @param {string} message 
+//  */
+// export const database = (message) => {
+//   log({level:'database', message});
+// }
+
+// /**
+//  * Helper function for printing event level logs
+//  * @param {string} message 
+//  */
+// export const event = (message) => {
+//   log({level:'event', message});
+// }
+
+// /**
+//  * Helper function for printing INFO level logs
+//  * @param {string} message 
+//  */
+// export const info = (message) => {
+//   log({level:'info', message});
+// }
+
+// /**
+//  * Helper function for printing ERROR level logs
+//  * @param {string} message 
+//  */
+// export const error = (error) => {
+
+//   if(typeof error === 'string'){
+//     log({level:'error', message:error});
+//   } else {
+//     log({level:'error', error});
+//   }
+
+
+// }
+
+// /**
+//  * Helper function for printing FATAL level logs
+//  * @param {string} message 
+//  */
+// export const fatal = (error) => {
+
+//   if(typeof error === 'string'){
+//     log({level:'fatal', message:error});
+//   } else {
+//     log({level:'fatal', error})
+//   }
+// }
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ATTEMPTED USES AT HAVING A CLEAN AND REFRESHABLE TABLE INPUT
 
 // import readline from 'readline';
 
@@ -251,8 +303,6 @@ log({message:'Hello World'});
 //   readline.cursorTo(process.stdout, -1);
 //   process.stdout.write(table.toString())
 // }, 1000)
-
-
 
 
 

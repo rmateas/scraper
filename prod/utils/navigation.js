@@ -1,39 +1,40 @@
-export const pageNav = async (page, url) => {
+import {setTimeout} from 'node:timers/promises';
 
-  let getHref = async () => {
-    let href = await page.evaluate(() => location.href);
-    return href.replace(/https?:\/\/(ww\w.)?/, '');
-  }
+import {log} from './logger/logger.js';
 
-  let locHref = await getHref();
-  let cutUrl = url.replace(/https?:\/\/(ww\w.)?/, '');
+const file = 'navigation.js';
 
-  if(locHref == cutUrl || locHref == cutUrl + '/'){
-    return;
-  }
+/**
+ * 
+ * @param {Object} page 
+ * @param {number} worker 
+ * @param {string} url
+ * 
+ * @return {Object} 
+ */
+export const pageNav = async (page, worker, url) => {
+  log({file, func:'pageNav', worker, message:`START: ${url}`});
 
-  let isRedirect = (res) => {
-    let chain = res.request().redirectChain();
-    if(chain.length){
-      return new Error('FAIL : Page redirect');
-    }
+  let isRedirect = async (res) => {
+    return (await res.request().redirectChain()).length ? true : false;
   }
 
   let isCaptcha = async () => {
-    if(await page.evaluate(() => document.evaluate('//iframe[contains(@src, "geo.captcha-delivery.com")]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue)){
-      throw new Error(`FAIL : Captcha | ${url}`);
-    }
+    return await page.evaluate(() => document.evaluate('//iframe[contains(@src, "geo.captcha-delivery.com")]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue) ? true : false;
   }
 
   let isBotDetector = async () => {
-    let botCounter = 0;
-    while(await page.evaluate(() => document.evaluate('//*[contains(text(), "This process is automatic. Your browser will redirect to your requested content shortly")]', document, null,XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue) && botCounter < 3){
-      botCounter++;
-      await page.waitForTimeout(7000);
-    }
-    if (botCounter == 3){
-      throw new Error(`FAIL : Stuck on bot validation | ${url}`);
-    }
+    // let botCounter = 0;
+    // let timeout1;
+    // while((await page.evaluate(() => document.evaluate('//*[contains(text(), "This process is automatic. Your browser will redirect to your requested content shortly")]', document, null,XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue) || await page.$('.cf-im-under-attack')) && botCounter < 3){
+    //   botCounter++;
+    //   timeout1 = await setTimeout(7000);
+    //}
+    // if (botCounter > 2){
+    //   clearTimeout(timeout1);
+    //   return true;
+    //}
+    return await page.$('.cf-im-under-attack') != null ? true : false;
   }
 
   let reqFail;
@@ -42,31 +43,31 @@ export const pageNav = async (page, url) => {
     reqFail = request.failure();
   });
 
-  let browErrHandler = async () => {
-    if(reqFail){
-      if(reqFail.errorText == 'net::ERR_TUNNEL_CONNECTION_FAILED'){
-        return new Error(`No response from site server | ${reqFail.errorText}`);
-      }
-    }
+  let browErrHandler = () => {
+    return reqFail?.errorText == 'net::ERR_TUNNEL_CONNECTION_FAILED' ? `FAIL | No response from site server | ${reqFail.errorText}` : `${reqFail?.errorText}` || 'UnknownReason';
   }
 
   let attemptNav = async (loadTrigger) => {
     let res;
     try {
       res = await page.goto(url, {waitUntil:loadTrigger, timeout:20000});
-    } catch (e) {
-      return browErrHandler();
+      if (await isBotDetector()) {
+        return {status: false, url, loadTrigger, message: `FAIL | Stuck on bot validation`};
+      } else if (await isCaptcha()) {
+        return {status: false, url, loadTrigger, message: `FAIL | Captcha`};
+      } else if (await isRedirect(res)) {
+        return {status: false, url, loadTrigger, message: 'FAIL | Page redirect'};
+      }
+    } catch (error) {
+      if(loadTrigger == 'domcontentloaded' && error.message.includes('Navigation timeout')) {
+        return await attemptNav('networkidle2');
+      } else {
+        log({level: 'error', file, func:'attempNav', worker, message:'FAIL NAV', error});
+        return {status: false, url, loadTrigger, message: browErrHandler()};
+      }
     }
-    await isBotDetector();
-    isRedirect(res);
-    await isCaptcha();
-    return true;
+    return {status: true, url, loadTrigger, message: 'SUCCESS'};
   }
 
-  let navCheck = await attemptNav('domcontentloaded');
-  if(navCheck instanceof Error){
-    throw navCheck;
-  } else if(navCheck != true){
-    await attemptNav('networkidle2');
-  }
+  return await attemptNav('domcontentloaded');
 };
