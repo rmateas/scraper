@@ -8,20 +8,20 @@ import { shuffle } from '../utils/shuffle.js';
 const file = 'browser.js';
 
 
-export const startBrowsers = async (browNum = 1) => {
+export const startBrowsers = async (browNum) => {
   log({file, func:'startBrowsers', message:'STARTING BROWSERS'});
   if(browNum > proxies.length){
     log({file, func:'startBrowsers', message:`NOT ENOUGH PROXIES AVAILABLE, SETTING BROWSER NUMBER FROM ${browNum} TO ${proxies.length}`});
     browNum = proxies.length;
   }
 
-  // let browsers = [];
+  let browsers = [];
   let shuffledProxies = shuffle(proxies);
 
-  // let browserCount = 0;
+  let browserCount = 0;
 
-  // while(browsers.length != browNum){
-  //   if(!shuffledProxies.length){break;}
+  while(browsers.length != browNum){
+    if(!shuffledProxies.length){break;}
     let browser;
     let pickedProxy = shuffledProxies.pop();
 
@@ -29,7 +29,7 @@ export const startBrowsers = async (browNum = 1) => {
     let isHeadless = isDev ? false : 'new'
     try {
       //args options | //https://peter.sh/experiments/chromium-command-line-switches/
-      browser = await chromium.launch({
+      browser = await chromium.launchServer({
         headless: isHeadless,
         ignoreHTTPSErrors: true,
         proxy:{
@@ -38,41 +38,25 @@ export const startBrowsers = async (browNum = 1) => {
           password:process.env.PPASS
         },
       });
-
-      let page = await browser.newPage();
-      // await page.waitForTimeout(60000)
-      await page.goto('http://www.followone.com');
-    } catch (e) {
-      console.log(e);
-      // await log({file, func:'startBrowsers', level:'fatal', message: 'ERROR LAUNCHING BROWSER', error:e});
-      // continue;
+    } catch (error) {
+      await log({file, func:'startBrowsers', level:'fatal', message: 'ERROR LAUNCHING BROWSER', error});
+      continue;
     }
-    
-  //   try {
-  //     let page = (await browser.pages())[0];
-  //     await page.authenticate({'username':process.env.PUSER,'password':process.env.PPASS});
-  //   } catch (e) {
-  //     await log({file, func:'browserAuth', level:'fatal', message:'AUTH ERROR', error:e});
-  //     continue;
-  //   }
 
-  //   let endpoint = browser.wsEndpoint();
-  //   browsers[browserCount] = {
-  //     browserNum:browserCount,
-  //     endpoint,
-  //     proxy:proxy,
-  //     working:false,
-  //     conErr:0
-  //   }
-  //   browserCount++;
-  // }
+    let endpoint = browser.wsEndpoint();
+    browsers[browserCount] = {
+      browserNum:browserCount,
+      endpoint,
+      proxy:pickedProxy,
+      working:false,
+      conErr:0
+    }
+    browserCount++;
+  }
 
-  // log({file, func:'startBrowsers', message:`BROWSERS STARTED: ${browsers.length}`});
-  // return browsers;
+  log({file, func:'startBrowsers', message:`BROWSERS STARTED: ${browsers.length}`});
+  return browsers;
 };
-
-(async ()=>{await startBrowsers()})()
-
 
 // let isSandbox = isDev ? '' : '--no-sandbox';
 // chromium browser args
