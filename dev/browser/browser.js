@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import { chromium } from 'playwright';
 
 import { log } from '../utils/logger/logger.js';
