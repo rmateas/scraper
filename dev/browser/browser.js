@@ -19,18 +19,13 @@ export const startBrowsers = async (browNum) => {
 
   let browserCount = 0;
 
-  while(browsers.length != browNum){
-    if(!shuffledProxies.length){break;}
+  while(browsers.length != browNum && shuffledProxies.length){
     let browser;
     let pickedProxy = shuffledProxies.pop();
-
-    let isDev = /dev(eleopment)?/i.test(process.env.NODE_ENV);
-    let isHeadless = isDev ? false : 'new'
+    
     try {
       //args options | //https://peter.sh/experiments/chromium-command-line-switches/
       browser = await chromium.launchServer({
-        headless: isHeadless,
-        ignoreHTTPSErrors: true,
         proxy:{
           server:pickedProxy,
           username:process.env.PUSER,

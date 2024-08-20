@@ -1,10 +1,8 @@
 import 'dotenv/config';
 import { cpus } from 'os';
 import cluster from 'node:cluster';
+import { chromium } from 'playwright';
 import { setTimeout } from 'node:timers/promises';
-
-import puppeteer from "puppeteer-extra";
-import StealthPlugin from "puppeteer-extra-plugin-stealth";
 
 import { startBrowsers } from '../browser/browser.js';
 import { getCards } from './cards/getCards.js';
@@ -13,7 +11,6 @@ import { getCards } from './cards/getCards.js';
 import { getPagination } from './pag/getPagination.js';
 import { log } from '../utils/logger/logger.js';
 
-puppeteer.use(StealthPlugin());
 
 // Specify scraper that is being started, set from the package.json start script
 const scraper = process.argv[2];
@@ -46,9 +43,10 @@ const file = 'startScraper.js';
         process.exit();
       }
     } else {
-      console.log('DEBUG logs not going to be printed');
+      // console.log('DEBUG logs not going to be printed');
       process.env.HOST = 'https://as-webs-api.azurewebsites.net';
-      process.env.WORKERS = cpus().length;
+      // process.env.WORKERS = cpus().length;
+      process.env.WORKERS = 1;
     }
 
     let browsers = [];
@@ -61,7 +59,7 @@ const file = 'startScraper.js';
       try {
         for(let browser of browsers){
           let { browserWSEndpoint } = browser;
-          brow = await puppeteer.connect({browserWSEndpoint});
+          brow = await chromium.connect({browserWSEndpoint});
           await brow.close();
         }
       } catch (e) {
@@ -137,7 +135,7 @@ const file = 'startScraper.js';
       worker.on('message', msg => {
         //https://github.com/nodejs/node/issues/39854 
         //creating the worker and then immediately sending a message creates a race condition due to ESM modules being loaded asynchronously
-        worker.send({worker:workerNum, browserWSEndpoint:brow.endpoint});
+        worker.send({worker:workerNum, wsEndpoint:brow.endpoint});
       });
       log({level:'debug', file, func:'spawnWorker', worker: workerNum, message:'SUCCESSFULLY STARTED WORKER'});
     }
@@ -162,32 +160,42 @@ const file = 'startScraper.js';
     process.on('message', async msg => {
       process.on('unhandledRejection', (e) => {log({level:'error', file, func:'unhandledRejection', message:'unhandledRejection', error:e})});
       process.on('uncaughtException', (e) => {log({level:'error', file, func:'uncaughtException', message:'uncaughtException', error:e})});
-      let {worker, browserWSEndpoint} = msg;
+      let {worker, wsEndpoint} = msg;
       let browser, page;
 
       try {
         log({level:'debug', file, func:'message', worker, message:'CONNECTING TO BROWSER'});
-        browser = await puppeteer.connect({browserWSEndpoint});
-        page = (await browser.pages())[0];
-        log({level:'debug', file, func:'message', worker, message:`BROWSER CONNECTED: ${browser.connected}`});
+        browser = await chromium.connect(wsEndpoint);
+        log({level:'debug', file, func:'message', worker, message:`BROWSER CONNECTED: ${browser.isConnected()}`});
       } catch (error) {
+        console.log(error);
         log({level:'error', file, func:'message', worker, message:'ERROR CONNECTING TO BROWSER', error});
         process.exit(10);
       }
       
-      try {
-        log({level:'debug', file, func:'message', worker, message:'STARTING SCRAPER'});
-        scraper == 'pagination' ? await getPagination(page, worker) :
-        // scraper == 'sinfo' ? await getSInfo(page, worker) :
-        // scraper == 'vinfo' ? await getVInfo(page, worker) :
-        scraper == 'cards' ? await getCards(page, worker) :
-        log({level:'ERROR', file, func:'message', worker, message:'SPECIFY SCRAPER'});
-      } catch (e) {
-        log({level:'error', file, func:'message', worker, message:'ERROR GETTING CARDS', error:e});
-      } finally {
-        log({level:'debug', file, func:'message', worker, message:'EXITING CHILD PROCESS'});
-        process.exit();
+      try {;
+        page = await browser.newPage();
+        page.once('load', () => console.log('Page loaded!'));
+        await page.goto('https://arh.antoinevastel.com/bots/areyouheadless');
+
+        await page.screenshot({path: `test${(new Date()).getMinutes()}.png`, fullPage: true});
+      } catch (error) {
+        console.log(error);
       }
+
+      // try {
+      //   log({level:'debug', file, func:'message', worker, message:'STARTING SCRAPER'});
+      //   scraper == 'pagination' ? await getPagination(page, worker) :
+      //   // scraper == 'sinfo' ? await getSInfo(page, worker) :
+      //   // scraper == 'vinfo' ? await getVInfo(page, worker) :
+      //   scraper == 'cards' ? await getCards(page, worker) :
+      //   log({level:'ERROR', file, func:'message', worker, message:'SPECIFY SCRAPER'});
+      // } catch (e) {
+      //   log({level:'error', file, func:'message', worker, message:'ERROR GETTING CARDS', error:e});
+      // } finally {
+      //   log({level:'debug', file, func:'message', worker, message:'EXITING CHILD PROCESS'});
+      //   process.exit();
+      // }
     });
     //necessary to proc message from parent and start scraper
     process.send('ping');
