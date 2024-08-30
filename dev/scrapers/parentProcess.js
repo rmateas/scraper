@@ -1,7 +1,6 @@
 import 'dotenv/config';
 import { cpus } from 'os';
 import cluster from 'node:cluster';
-import { chromium } from 'playwright';
 import { setTimeout } from 'node:timers/promises';
 
 import { startBrowsers } from '../browser/browser.js';
@@ -50,30 +49,32 @@ const file = 'startScraper.js';
     }
 
     let browsers = [];
+
+    // ******************* refactor sig handler to handle playwright endpoint rather than puppeteer endpoint
     
     /**
      * Signal handler for process exit to make sure that all browsers close
      */
-    let endSignalHandler = async () =>  {
-      log({file, func:'endSignalHandler', message:`CLOSING ${browsers.length} BROWSERS`});
-      try {
-        for(let browser of browsers){
-          let { browserWSEndpoint } = browser;
-          brow = await chromium.connect({browserWSEndpoint});
-          await brow.close();
-        }
-      } catch (e) {
-        console.log(e);
-      } finally {
-        log({file, func:'endSignalHandler', message:'ALL BROWSERS CLOSED'});
-        log({file, func:'endSignalHandler', message:'EXITING PROCESS'});
-        process.exit(0);
-      }
-    }
+    // let endSignalHandler = async () =>  {
+    //   log({file, func:'endSignalHandler', message:`CLOSING ${browsers.length} BROWSERS`});
+    //   try {
+    //     for(let browser of browsers){
+    //       let { browserWSEndpoint } = browser;
+    //       brow = await chromium.connect({browserWSEndpoint});
+    //       await brow.close();
+    //     }
+    //   } catch (e) {
+    //     console.log(e);
+    //   } finally {
+    //     log({file, func:'endSignalHandler', message:'ALL BROWSERS CLOSED'});
+    //     log({file, func:'endSignalHandler', message:'EXITING PROCESS'});
+    //     process.exit(0);
+    //   }
+    // }
     
-    process.on('SIGINT', endSignalHandler);
-    process.on('SIGTERM', endSignalHandler);
-    process.on('SIGQUIT', endSignalHandler);
+    // process.on('SIGINT', endSignalHandler);
+    // process.on('SIGTERM', endSignalHandler);
+    // process.on('SIGQUIT', endSignalHandler);
     
     let workers = Array.apply(undefined, Array(+process.env.WORKERS)).map(()=>{});
 
@@ -129,13 +130,14 @@ const file = 'startScraper.js';
     let spawnWorker = async (i) => {
       let workerNum = i+1;
       log({level:'debug', file, func:'spawnWorker', worker: workerNum, message:'START'});
-      let worker = cluster.fork();
       let brow = await pickBrowser(workerNum, browsers);
+      let worker = cluster.fork();
       workers[i] = {worker:worker.process.pid, browNum:brow.browserNum};
-      worker.on('message', msg => {
+      worker.on('message', async msg => {
+
         //https://github.com/nodejs/node/issues/39854 
         //creating the worker and then immediately sending a message creates a race condition due to ESM modules being loaded asynchronously
-        worker.send({worker:workerNum, wsEndpoint:brow.endpoint});
+        worker.send({worker:workerNum, wsEndpoint:brow.wsEndpoint});
       });
       log({level:'debug', file, func:'spawnWorker', worker: workerNum, message:'SUCCESSFULLY STARTED WORKER'});
     }
@@ -161,41 +163,33 @@ const file = 'startScraper.js';
       process.on('unhandledRejection', (e) => {log({level:'error', file, func:'unhandledRejection', message:'unhandledRejection', error:e})});
       process.on('uncaughtException', (e) => {log({level:'error', file, func:'uncaughtException', message:'uncaughtException', error:e})});
       let {worker, wsEndpoint} = msg;
-      let browser, page;
+      console.log(wsEndpoint);
 
-      try {
-        log({level:'debug', file, func:'message', worker, message:'CONNECTING TO BROWSER'});
-        browser = await chromium.connect(wsEndpoint);
-        log({level:'debug', file, func:'message', worker, message:`BROWSER CONNECTED: ${browser.isConnected()}`});
-      } catch (error) {
-        console.log(error);
-        log({level:'error', file, func:'message', worker, message:'ERROR CONNECTING TO BROWSER', error});
-        process.exit(10);
-      }
-      
-      try {;
-        page = await browser.newPage();
-        page.once('load', () => console.log('Page loaded!'));
-        await page.goto('https://arh.antoinevastel.com/bots/areyouheadless');
-
-        await page.screenshot({path: `test${(new Date()).getMinutes()}.png`, fullPage: true});
-      } catch (error) {
-        console.log(error);
-      }
-
+      //PLAYWRIGHT TEST
       // try {
-      //   log({level:'debug', file, func:'message', worker, message:'STARTING SCRAPER'});
-      //   scraper == 'pagination' ? await getPagination(page, worker) :
-      //   // scraper == 'sinfo' ? await getSInfo(page, worker) :
-      //   // scraper == 'vinfo' ? await getVInfo(page, worker) :
-      //   scraper == 'cards' ? await getCards(page, worker) :
-      //   log({level:'ERROR', file, func:'message', worker, message:'SPECIFY SCRAPER'});
-      // } catch (e) {
-      //   log({level:'error', file, func:'message', worker, message:'ERROR GETTING CARDS', error:e});
-      // } finally {
-      //   log({level:'debug', file, func:'message', worker, message:'EXITING CHILD PROCESS'});
-      //   process.exit();
+      //   let page = await context.newPage();
+      //   page.once('load', () => console.log('Page loaded!'));
+      //   await page.goto('https://arh.antoinevastel.com/bots/areyouheadless');
+      //   await page.screenshot({path: `test${(new Date()).getMinutes()}.png`, fullPage: true});
+      // } catch (error) {
+      //   console.log(error);
       // }
+
+
+      //CODE EXECUTION
+      try {
+        log({level:'debug', file, func:'message', worker, message:'STARTING SCRAPER'});
+        scraper == 'pagination' ? await getPagination(wsEndpoint, worker) :
+        // scraper == 'sinfo' ? await getSInfo(page, worker) :
+        // scraper == 'vinfo' ? await getVInfo(page, worker) :
+        // scraper == 'cards' ? await getCards(page, worker) :
+        log({level:'ERROR', file, func:'message', worker, message:'SPECIFY SCRAPER'});
+      } catch (e) {
+        log({level:'error', file, func:'message', worker, message:'ERROR GETTING CARDS', error:e});
+      } finally {
+        log({level:'debug', file, func:'message', worker, message:'EXITING CHILD PROCESS'});
+        process.exit();
+      }
     });
     //necessary to proc message from parent and start scraper
     process.send('ping');

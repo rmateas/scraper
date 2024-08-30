@@ -67,7 +67,7 @@ const writeToConsole = (levelName, file, func, worker, message, obj = null, erro
   
   const header = `[${addPadding(worker.toString(), 2)}][${addPadding(levelName.toUpperCase(), 10)}][${getFormattedCurrentDate()}][${addPadding(file)}][${addPadding(func)}]`;
   
-  console.log(`${chalkFunction(header)}: ${chalkFunction(message)} ${obj != null || error != null ? '\n' : ''} `, obj != null ? obj : error ? error != null : '');
+  console.log(`${chalkFunction(header)}: ${chalkFunction(message)} ${obj != null || error != null ? '\n' : ''} `, obj != null ? obj : error != null ? error : '');
 }
 
 const writeToDB = async (scraper, level, message, error) => {

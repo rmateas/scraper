@@ -1,5 +1,4 @@
 import { chromium } from 'playwright';
-
 import { log } from '../utils/logger/logger.js';
 import proxies from './proxies.json' with { type: "json"};
 import { shuffle } from '../utils/shuffle.js';
@@ -37,10 +36,9 @@ export const startBrowsers = async (browNum) => {
       continue;
     }
 
-    let endpoint = browser.wsEndpoint();
     browsers[browserCount] = {
       browserNum:browserCount,
-      endpoint,
+      wsEndpoint:browser.wsEndpoint(),
       proxy:pickedProxy,
       working:false,
       conErr:0
