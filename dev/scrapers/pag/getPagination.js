@@ -1,4 +1,45 @@
 /**
+ * Wire Frame
+ * 
+ * STEP 1:
+ * Navigate to home URL
+ * Grab all URLs on page
+ * Sort URLs for invertory specific ones
+ * RETURN [Array of possible inventory URLs]
+ * 
+ * STEP 2
+ * [Array of possible inventory URLs]
+ * Navigate to URL
+ * Grab all URLs
+ * Test for possible vehicle cards
+ * - If true: next step, else: continue array
+ * Test for pagination URLs 
+ * - If true: next step, else: continue array
+ * Look for pattern in pagination URLs to try to get start index and page iterator
+ * - If possible get cards per page limiter
+ * RETURN [Array of URLs where pagination URLs exist]
+ * 
+ * STEP 3:
+ * [Array of URLs where pagination URLs exist]
+ * // Sometimes gives false positive for chain dealerships, default for these is to get all cards in the area rather than just cards for the dealership. These have a dealer ID that has to be set as well, often zipcode or city name.
+ * Test URL to see which one returns the most cards
+ * RETURN {
+ *    sellerUrl,
+ *    startIndex,
+ *    pageIterator,
+ *    dealerLocationID(optional),
+ *    vehicleCards
+ * }
+ * 
+ * STEP 4 (optional):
+ * Check new and used URLs and their properties against one another to make sure things match between the two
+ * 
+ * STEP 5: 
+ * Push to DB
+ *  
+ */
+
+/**
  * Function Calls Order by File
  * 
  * getPossibleInventoryUrls -> 
@@ -89,6 +130,8 @@ export const getPagination = async (wsEndpoint, worker, proxy) => {
       await page.goto(seller.sellerUrl);
       await page.screenshot({path: `test${(new Date()).getMinutes()}.png`, fullPage: true});
     } catch (error) {
+      //******** take screenshot of page and upload to DB */
+      // await page.screenshot({path: `test${(new Date()).getMinutes()}.png`, fullPage: true});
       throw new Error(error);
     }
     
