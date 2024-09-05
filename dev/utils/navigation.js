@@ -16,7 +16,13 @@ export const pageNav = async (page, worker, url) => {
   log({file, func:'pageNav', worker, message:`START: ${url}`});
 
   let isRedirect = async (res) => {
-    return (await res.request().redirectChain()).length ? true : false;
+    //playwright specific
+    let isRedirect = res.request().redirectedTo();
+    if(isRedirect){
+      log({file, func:'pageNav', worker, message:`REDIRECT TO: ${isRedirect}`});
+      return true;
+    }
+    return false;
   }
 
   let isCaptcha = async () => {
@@ -59,8 +65,8 @@ export const pageNav = async (page, worker, url) => {
         return {status: false, url, loadTrigger, message: 'FAIL | Page redirect'};
       }
     } catch (error) {
-      if(loadTrigger == 'domcontentloaded' && error.message.includes('Navigation timeout')) {
-        return await attemptNav('networkidle2');
+      if(loadTrigger == 'domcontentloaded' && error.message.includes('Timeout')) {
+        return await attemptNav('networkidle');
       } else {
         log({level: 'error', file, func:'attempNav', worker, message:'FAIL NAV', error});
         return {status: false, url, loadTrigger, message: browErrHandler()};
