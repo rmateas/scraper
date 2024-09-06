@@ -163,7 +163,6 @@ const file = 'startScraper.js';
       process.on('unhandledRejection', (e) => {log({level:'error', file, func:'unhandledRejection', message:'unhandledRejection', error:e})});
       process.on('uncaughtException', (e) => {log({level:'error', file, func:'uncaughtException', message:'uncaughtException', error:e})});
       let {worker, wsEndpoint} = msg;
-      console.log(wsEndpoint);
 
       //PLAYWRIGHT TEST
       // try {
