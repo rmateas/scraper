@@ -1,5 +1,3 @@
-
-import chalk from 'chalk';
 import moment from 'moment';
 
 import config from './config.js';
@@ -61,13 +59,10 @@ export const log = async (options) => {
 const writeToConsole = (levelName, file, func, worker, message, obj = null, error = null) => {
   
   const level = config.levels[levelName];
-  let chalkFunction = level.color.includes('#') ? chalk.hex(level.color)
-  : Array.isArray(level.color) ? chalk.rgb(level.color[0], level.color[1], level.color[2])
-  : chalk[level.color];
   
   const header = `[${addPadding(worker.toString(), 2)}][${addPadding(levelName.toUpperCase(), 10)}][${getFormattedCurrentDate()}][${addPadding(file)}][${addPadding(func)}]`;
   
-  console.log(`${chalkFunction(header)}: ${chalkFunction(message)} ${obj != null || error != null ? '\n' : ''} `, obj != null ? obj : error != null ? error : '');
+  console.log(`${header}: ${message} ${obj != null || error != null ? '\n' : ''} `, obj != null ? obj : error != null ? error : '');
 }
 
 const writeToDB = async (scraper, level, message, error) => {
@@ -148,7 +143,7 @@ const writeToDB = async (scraper, level, message, error) => {
 //     });
 
 //     lineReader.on('close', () => {
-//       console.log(chalk.yellow(`${fileName.toUpperCase} Logs have been accessed`));
+//       console.log(`${fileName.toUpperCase} Logs have been accessed`);
 //       console.table(logs);
 //       resolve(logs);
 //     });
