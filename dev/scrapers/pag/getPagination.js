@@ -186,6 +186,6 @@ export const getPagination = async (wsEndpoint, worker, proxy) => {
     //MAIN CATCH
     log({file, func, worker, message:'ERROR WITH SCRAPER', error});
     //******** take screenshot of page and upload to DB */
-    await page.screenshot({path: `test${(new Date()).getMinutes()}.png`, fullPage: true});
+    await page.screenshot({path: `${seller.sellerUrl}${(new Date()).getMinutes()}.png`, fullPage: true});
   }
 }
