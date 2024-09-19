@@ -46,7 +46,7 @@ process.env.HOST = isDev ? 'http://localhost:8080' : 'https://as-webs-api.azurew
         response = await page.request.get(seller.sellerUrl);
         seller.httpResponse = response.status();  
       } catch (error) {
-        seller.httpResponse = +error.message.match(/(?<=←\s)\d\d\d/)[0];
+        seller.httpResponse = /(?<=←\s)\d\d\d/.test(error.message) ? +error.message.match(/(?<=←\s)\d\d\d/)[0] : 0;
         isDev ? console.log(`Error with ${seller.sellerUrl}\n`, error) : null;
       }
     }
