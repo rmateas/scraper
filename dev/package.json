@@ -7,7 +7,8 @@
     "cards": "node --no-warnings=ExperimentalWarning scrapers/parentProcess.js cards",
     "sinfo": "node --no-warnings=ExperimentalWarning scrapers/parentProcess.js sinfo",
     "vinfo": "node --no-warnings=ExperimentalWarning scrapers/parentProcess.js vinfo",
-    "pag": "node --no-warnings=ExperimentalWarning scrapers/parentProcess.js pagination"
+    "pag": "node --no-warnings=ExperimentalWarning scrapers/parentProcess.js pagination",
+    "httptest": "node urlTester/test.js"
   },
   "author": "",
   "license": "ISC",
