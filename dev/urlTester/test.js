@@ -39,22 +39,31 @@ process.env.HOST = isDev ? 'http://localhost:8080' : 'https://as-webs-api.azurew
   }
 
   try {
-    for (const seller of sellers) {
-      let response;
-      seller.httpResponse = null;
-      try {
-        response = await page.request.get(seller.sellerUrl);
-        seller.httpResponse = response.status();  
-      } catch (error) {
-        seller.httpResponse = /(?<=←\s)\d\d\d/.test(error.message) ? +error.message.match(/(?<=←\s)\d\d\d/)[0] : 0;
-        isDev ? console.log(`Error with ${seller.sellerUrl}\n`, error) : null;
+    do {
+      console.log(sellers.length);
+      let sellerArr = [];
+      for (let i = 0; i < 20; i++) {
+        sellerArr.push(sellers.pop());
       }
-    }
+
+      for (const seller of sellerArr){
+        let response;
+        seller.httpResponse = null;
+        try {
+          response = await page.request.get(seller.sellerUrl);
+          seller.httpResponse = response.status();  
+        } catch (error) {
+          seller.httpResponse = /(?<=←\s)\d\d\d/.test(error.message) ? +error.message.match(/(?<=←\s)\d\d\d/)[0] : 0;
+          isDev ? console.log(`Error with ${seller.sellerUrl}\n`, error) : null;
+        }
+      }
+      await postAPI(0, `${process.env.HOST}/seller/updatehttpvalidity`, JSON.stringify(sellerArr));
+    } while (sellers.length)
+
   } catch (error) {
     console.log('Error while checking if urls are valid\n', error);
   } finally {
     isDev ? console.log(sellers) : null;
-    await postAPI(0, `${process.env.HOST}/seller/updatehttpvalidity`, JSON.stringify(sellers));
     process.exit();
   }
 })()
