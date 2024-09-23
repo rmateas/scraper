@@ -42,11 +42,13 @@ process.env.HOST = isDev ? 'http://localhost:8080' : 'https://as-webs-api.azurew
     do {
       console.log(sellers.length);
       let sellerArr = [];
-      // for (let i = 0; i < 20; i++) {
-      //   sellerArr.push(sellers.pop());
-      // }
-
-      sellerArr = sellers;
+      for (let i = 0; i < 20; i++) {
+        if(!sellers.length) {
+          break;
+        } else {
+          sellerArr.push(sellers.pop());
+        }
+      }
 
       for (const seller of sellerArr){
         let response;
