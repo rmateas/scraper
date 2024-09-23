@@ -32,7 +32,7 @@ process.env.HOST = isDev ? 'http://localhost:8080' : 'https://as-webs-api.azurew
   }
   
   try {
-    sellers = (await (await fetch(`${process.env.HOST}/seller/get?sellerUrl[exists]=true&select=sellerId,sellerUrl`)).json()).data;
+    sellers = (await (await fetch(`${process.env.HOST}/seller/get?sellerUrl[exists]=true&httpResponse[exists]=false&select=sellerId,sellerUrl`)).json()).data;
     isDev ? console.log(sellers) : null;
   } catch (error) {
     console.log(`error getting urls from DB\n`, error)
@@ -42,9 +42,11 @@ process.env.HOST = isDev ? 'http://localhost:8080' : 'https://as-webs-api.azurew
     do {
       console.log(sellers.length);
       let sellerArr = [];
-      for (let i = 0; i < 20; i++) {
-        sellerArr.push(sellers.pop());
-      }
+      // for (let i = 0; i < 20; i++) {
+      //   sellerArr.push(sellers.pop());
+      // }
+
+      sellerArr = sellers;
 
       for (const seller of sellerArr){
         let response;
