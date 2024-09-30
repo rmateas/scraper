@@ -1,3 +1,5 @@
 dev/node_modules
 prod/node_modules
 .vscode
+prod/.env
+env/.env
