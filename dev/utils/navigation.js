@@ -30,16 +30,6 @@ export const pageNav = async (page, worker, url) => {
   }
 
   let isBotDetector = async () => {
-    // let botCounter = 0;
-    // let timeout1;
-    // while((await page.evaluate(() => document.evaluate('//*[contains(text(), "This process is automatic. Your browser will redirect to your requested content shortly")]', document, null,XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue) || await page.$('.cf-im-under-attack')) && botCounter < 3){
-    //   botCounter++;
-    //   timeout1 = await setTimeout(7000);
-    //}
-    // if (botCounter > 2){
-    //   clearTimeout(timeout1);
-    //   return true;
-    //}
     return await page.$('.cf-im-under-attack') != null ? true : false;
   }
 
