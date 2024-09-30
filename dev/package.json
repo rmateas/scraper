@@ -8,7 +8,7 @@
     "sinfo": "node --no-warnings=ExperimentalWarning scrapers/parentProcess.js sinfo",
     "vinfo": "node --no-warnings=ExperimentalWarning scrapers/parentProcess.js vinfo",
     "pag": "node --no-warnings=ExperimentalWarning scrapers/parentProcess.js pagination",
-    "httptest": "node urlTester/test.js"
+    "httptest": "node httpUrlResponseTest/main.js"
   },
   "author": "",
   "license": "ISC",
