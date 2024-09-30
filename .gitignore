@@ -1,5 +1,6 @@
 dev/node_modules
 prod/node_modules
-.vscode
+dev/errorCaptures
 prod/.env
 env/.env
+.vscode
