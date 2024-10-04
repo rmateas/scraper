@@ -9,9 +9,9 @@ import { pageNav } from '../../utils/navigation.js';
 import getVehInfo from './utils/getVehInfo.js';
 
 const file = 'getVInfo.js';
-const func = 'getVInfo';
+const func = 'default';
 
-export default getVInfo = async (wsEndpoint, worker, proxy) => {
+export default async (wsEndpoint, worker, proxy) => {
   log({file, func, worker, message:'START'});
 
   try {

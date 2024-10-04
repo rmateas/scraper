@@ -4,9 +4,9 @@ import dataAttributes from './getVehDataAttr.js';
 import apiInfo from './getVehInfoApi.js';
 
 const file = 'getVehInfo.js';
-const func = 'moreInfo';
+const func = 'default';
 
-let moreInfo = async (page, worker, carSpecs) => {
+export default async (page, worker, carSpecs) => {
   log({file, func, worker, message:'START'});
 
   let errArr = [];
@@ -618,5 +618,3 @@ let moreInfo = async (page, worker, carSpecs) => {
 
   return {carSpecs, errArr};
 }
-
-module.exports = moreInfo;

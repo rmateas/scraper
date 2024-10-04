@@ -1,6 +1,6 @@
 import {setTimeout} from 'node:timers/promises';
 
-import {log} from './logger/logger.js';
+import log from './logger/logger.js';
 
 const file = 'navigation.js';
 

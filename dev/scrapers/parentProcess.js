@@ -6,7 +6,7 @@ import { setTimeout } from 'node:timers/promises';
 import { startBrowsers } from '../browser/browser.js';
 import { getCards } from './cards/getCards.js';
 // import { getSInfo } from './sinfo/getSInfo.js';
-import { getVInfo } from './vinfo/getVInfo.js';
+import getVInfo from './vinfo/getVInfo.js';
 import { getPagination } from './pag/getPagination.js';
 import log from '../utils/logger/logger.js';
 

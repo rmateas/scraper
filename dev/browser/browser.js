@@ -1,5 +1,5 @@
 import { chromium } from 'playwright';
-import { log } from '../utils/logger/logger.js';
+import log from '../utils/logger/logger.js';
 import proxies from './proxies.json' with { type: "json"};
 import { shuffle } from '../utils/shuffle.js';
 
