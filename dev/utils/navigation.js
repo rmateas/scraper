@@ -55,7 +55,7 @@ export const pageNav = async (page, worker, url) => {
         return {status: false, url, loadTrigger, message: 'FAIL | Page redirect'};
       }
     } catch (error) {
-      if(loadTrigger == 'domcontentloaded' && error.message.includes('TIMED_OUT')) {
+      if(loadTrigger == 'domcontentloaded' && (error.message.includes('TIMED_OUT') || error.message.includes('Timeout'))) {
         return await attemptNav('networkidle');
       } else {
         log({level: 'error', file, func:'attempNav', worker, message:'FAIL NAV', error});
