@@ -1,8 +1,10 @@
-const fetch = require('node-fetch-commonjs');
-const {log, devLog} = require('../../template/logger.js');
+import log from '../../../utils/logger/logger.js';
 
-let APIInfo = async (worker, vin) => {
-  devLog(worker, 'getVehicleInfoApi.js', 'APIInfo', 'Start');
+const file = 'getVehInfoApi.js';
+const func = 'default';
+
+export default async (worker, vin) => {
+  log({file, func, worker, message:'START'});
   let data = {};
   
   try {
@@ -10,9 +12,9 @@ let APIInfo = async (worker, vin) => {
     for(let infoObj of apiData.Results){
       data[infoObj.Variable.replace(/\s/g, '_')] = infoObj.Value;
     }
-  } catch (e) {
-    log(worker, 'getVehicleInfoApi.js', 'APIInfo', `Error getting VIN API data: ${vin}`, e);
-    return {};
+  } catch (error) {
+    log({file, func, worker, message:`Error getting VIN API data: ${vin}`, error});
+    return data;
   }
 
   let checkData = (key) => key in data && data[key] != null && data[key] != "null"  && !(/\//.test(data[key])) ? data[key] : ''; 
@@ -34,5 +36,3 @@ let APIInfo = async (worker, vin) => {
     doors:checkData('Doors')
   }
 };
-
-module.exports = APIInfo;

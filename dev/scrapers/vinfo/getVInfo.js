@@ -3,7 +3,7 @@
 import { setTimeout } from 'node:timers/promises';
 import { performance as time } from 'perf_hooks';
 
-import { log } from '../../utils/logger/logger.js';
+import log from '../../utils/logger/logger.js';
 import { getAPI, postAPI } from '../../utils/apiUtils.js';
 import { pageNav } from '../../utils/navigation.js';
 import getVehInfo from './utils/getVehInfo.js';
@@ -11,11 +11,21 @@ import getVehInfo from './utils/getVehInfo.js';
 const file = 'getVInfo.js';
 const func = 'getVInfo';
 
-export default getVInfo = async (worker, page, qp, proxy) => {
+export default getVInfo = async (wsEndpoint, worker, proxy) => {
   log({file, func, worker, message:'START'});
 
+  try {
+    let browserConnect = await chromium.connect(wsEndpoint);
+    let context = await browserConnect.newContext();
+    page = await context.newPage();
+  } catch (error) {
+    //Set special exit code for when connecting to browser fails so that the browser can be tested
+    //503 proxy error
+    process.exit(503);
+  }
+
   let VehCardInfoArr = [];
-  let APIData = await getAPI(worker, `${qp.host}/vehicle/get/${qp.limit}`);
+  let APIData = await getAPI(worker, `${process.env.HOST}/vehicle/get/14`);
   
   for(let specs of APIData) {
     log({file, func, worker, message:`Current url: ${specs.url}`});

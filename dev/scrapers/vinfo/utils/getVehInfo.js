@@ -1,14 +1,17 @@
-let { log, devLog } = require('../../template/logger.js');
+import log from '../../../utils/logger/logger.js';
 
-let dataAttributes = require('./getVehDataAttr.js');
-let apiInfo = require('./getVehInfoApi.js');
+import dataAttributes from './getVehDataAttr.js';
+import apiInfo from './getVehInfoApi.js';
+
+const file = 'getVehInfo.js';
+const func = 'moreInfo';
 
 let moreInfo = async (page, worker, carSpecs) => {
-  devLog(worker, 'getVehicleInfo.js', 'moreInfo', 'Start');
+  log({file, func, worker, message:'START'});
 
   let errArr = [];
   try {
-    devLog(worker, 'getVehicleInfo.js', 'moreInfo', 'Getting VIN');
+    log({file, func, worker, message:'Getting VIN'});
     carSpecs.vin = await page.evaluate(() => {
       let vin;
       let vinVal = (v) => {
@@ -33,7 +36,7 @@ let moreInfo = async (page, worker, carSpecs) => {
 
   let apiVehInfo = await apiInfo(worker, carSpecs.vin);
 
-  devLog(worker, 'getVehicleInfo.js', 'moreInfo', 'API Info', apiVehInfo);
+  log({file, func, worker, message:'API Info', obj:apiVehInfo});
   
   let apiInfoKeys = Object.keys(apiVehInfo);
   for (let i = 0; i < apiInfoKeys.length; i++) {
@@ -42,7 +45,7 @@ let moreInfo = async (page, worker, carSpecs) => {
 
   let dataAtt = await dataAttributes(page, worker, carSpecs.vin);
 
-  devLog(worker, 'getVehicleInfo.js', 'moreInfo', 'Attribute Info', dataAtt);
+  log({file, func, worker, message:'Attribute Info', obj:dataAtt});
 
   let dataAttKeys = Object.keys(dataAtt);
   for (let i = 0; i < dataAttKeys.length; i++) {

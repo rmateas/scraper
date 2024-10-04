@@ -1,16 +1,18 @@
-let { log, devLog } = require('../../template/logger.js');
+import log from '../../../utils/logger/logger.js';
 
-module.exports = async (page, worker, vin) => {
-  devLog(worker, 'getVehDataAttr.js', 'getVehDataAttr', 'Start');
+const file ='getVehDataAttr.js';
+const func ='default';
+
+export default async (page, worker, vin) => {
+  log({file, func, worker, message:'START'});
   let getAttr = async (attr) => {
     try {
       return await page.evaluate((attr, vin) => {
         let attribute = document.querySelector(`[data-${attr}]:not([data-${attr}=""])[data-vin="${vin}"]`);
-        console.log(attribute);
         return attribute ? attribute.getAttribute(`data-${attr}`) : '';
       }, attr, vin);
-    } catch (e) {
-      devLog(worker, 'getVehDataAttr.js', 'getAtt', `FAIL | Error getting data attribute ${attr}`, e);
+    } catch (error) {
+      log({file, func, worker, message:`FAIL | Error getting data attribute ${attr}`, error});
       return '';
     }
   }
