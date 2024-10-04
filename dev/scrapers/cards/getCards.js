@@ -2,9 +2,22 @@ import { getAPI, postAPI } from '../../utils/apiUtils.js';
 import { getCardsFromDealer } from './utils/getVehCards.js';
 import { log } from '../../utils/logger/logger.js';
 
-export const getCards = async (page, worker) => {
+export const getCards = async (wsEndpoint, worker, proxy) => {
   let file = 'getCards.js';
   log({file, func:'getCards', worker, message:'START'});
+
+
+  try {
+    let browserConnect = await chromium.connect(wsEndpoint);
+    let context = await browserConnect.newContext();
+    page = await context.newPage();
+  } catch (error) {
+    //Set special exit code for when connecting to browser fails so that the browser can be tested
+    //503 proxy error
+    process.exit(503);
+  }
+
+
   for(let seller of await getAPI(`${process.env.HOST}/seller/getcards`)){
     let cards = {
       sellerId:seller.sellerId,
