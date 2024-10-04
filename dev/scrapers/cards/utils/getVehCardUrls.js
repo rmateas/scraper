@@ -1,5 +1,5 @@
 import comVehMakes from './comMakes.json' with { type: "json" };
-import { log } from '../../../utils/logger/logger.js';
+import log from '../../../utils/logger/logger.js';
 
 const file = 'getVehCardUrls.js';
 const func = 'getVehCardUrls';

@@ -1,4 +1,4 @@
-import { log } from '../../../utils/logger/logger.js';
+import log from '../../../utils/logger/logger.js';
 import { pageNav } from '../../../utils/navigation.js';
 import { findAllPaginationUrls } from './findAllPaginationUrls.js'; 
 import { setPageIterator } from './setPageIterator.js';

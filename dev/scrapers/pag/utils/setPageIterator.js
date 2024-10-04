@@ -1,4 +1,4 @@
-import { log } from '../../../utils/logger/logger.js';
+import log from '../../../utils/logger/logger.js';
 
 const file = 'setPageIterator.js';
 const func = 'setPageIterator';

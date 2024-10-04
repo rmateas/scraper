@@ -1,4 +1,4 @@
-import { log } from '../../../utils/logger/logger.js';
+import log from '../../../utils/logger/logger.js';
 import { getCardsFromDealer } from '../../cards/utils/getVehCards.js';
 
 const file = 'findBestPaginationOption.js';

@@ -51,7 +51,7 @@
 
 import { chromium } from 'playwright';
 
-import { log } from '../../utils/logger/logger.js';
+import log from '../../utils/logger/logger.js';
 import { pageNav } from '../../utils/navigation.js';
 import { getAPI, postAPI } from '../../utils/apiUtils.js';
 import { findPossiblePagination } from './utils/findPossiblePagination.js';

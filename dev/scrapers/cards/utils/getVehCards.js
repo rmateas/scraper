@@ -1,6 +1,6 @@
 import { setTimeout } from 'node:timers/promises'; 
 
-import { log } from '../../../utils/logger/logger.js';
+import log from '../../../utils/logger/logger.js';
 import { pageNav } from '../../../utils/navigation.js';
 import { getVehCardUrls } from './getVehCardUrls.js';
 

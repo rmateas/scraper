@@ -1,6 +1,6 @@
 import { getAPI, postAPI } from '../../utils/apiUtils.js';
 import { getCardsFromDealer } from './utils/getVehCards.js';
-import { log } from '../../utils/logger/logger.js';
+import log from '../../utils/logger/logger.js';
 
 export const getCards = async (wsEndpoint, worker, proxy) => {
   let file = 'getCards.js';
