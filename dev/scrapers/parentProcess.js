@@ -6,7 +6,7 @@ import { setTimeout } from 'node:timers/promises';
 import { startBrowsers } from '../browser/browser.js';
 import { getCards } from './cards/getCards.js';
 // import { getSInfo } from './sinfo/getSInfo.js';
-// import { getVInfo } from './vinfo/getVInfo.js';
+import { getVInfo } from './vinfo/getVInfo.js';
 import { getPagination } from './pag/getPagination.js';
 import { log } from '../utils/logger/logger.js';
 
@@ -179,8 +179,8 @@ const file = 'startScraper.js';
         log({level:'debug', file, func:'message', worker, message:'STARTING SCRAPER'});
         scraper == 'pagination' ? await getPagination(wsEndpoint, worker) :
         // scraper == 'sinfo' ? await getSInfo(wsEndpoint, worker) :
-        // scraper == 'vinfo' ? await getVInfo(wsEndpoint, worker) :
-        scraper == 'cards' ? await getCards(wsEndpoint, worker) :
+        scraper == 'vinfo' ? await getVInfo(wsEndpoint, worker) :
+        // scraper == 'cards' ? await getCards(wsEndpoint, worker) :
         log({level:'ERROR', file, func:'message', worker, message:'SPECIFY SCRAPER'});
       } catch (e) {
         log({level:'error', file, func:'message', worker, message:'ERROR GETTING CARDS', error:e});
