@@ -13,6 +13,23 @@ let findPossiblePaginationFlow = [];
 
 export const findPossiblePagination = async (page, worker, sellerUrl, invUrlArr) => {
   log({file, func, worker, message:'START'});
+
+  let scrollDown = async () => {
+    await page.evaluate(() => {window.scrollTo(0, window.document.body.scrollHeight)});
+    await page.waitForTimeout(2000);
+  }
+  let getPageHeight = async () => await page.evaluate(() => {return {current: document.documentElement.clientHeight + window.scrollY, total: window.document.body.scrollHeight}});
+
+  let scrollToBottom = async () => {
+    let oldPageheight = 0;
+    let pageHeight = await getPageHeight();
+    do {
+      oldPageheight = pageHeight.total;
+      await scrollDown();
+      pageHeight = await getPageHeight();
+    } while (pageHeight.current <= pageHeight.total && (pageHeight.total - pageHeight.current) > 40 && oldPageheight != pageHeight.total);
+  }
+
   try {
     for (let invUrl of invUrlArr) {
       let paginationFlow = {
@@ -26,11 +43,12 @@ export const findPossiblePagination = async (page, worker, sellerUrl, invUrlArr)
       }
       try {
         let findPossiblePaginationNav1 = await pageNav(page, worker, `${sellerUrl}${invUrl}`);
-        if(findPossiblePaginationNav1 != true){
+        if(findPossiblePaginationNav1.status != true){
           paginationFlow.caughtErrors.push({errorType: 'NAV ERROR', endpoint: `${sellerUrl}${invUrl}`, message: findPossiblePaginationNav1.message});
           findPossiblePaginationFlow.push(paginationFlow);
           continue;
         }
+        await scrollToBottom();
         let {cards:foundCards, error} = await getVehCardUrls(page, worker);
         if(error || !foundCards.length){
           error != null ? paginationFlow.caughtErrors.push(error) : paginationFlow.caughtErrors.push({errorType: 'CONTENT', endpoint: `${sellerUrl}${invUrl}`, message: 'NO CARDS FOUND'});
@@ -60,10 +78,8 @@ export const findPossiblePagination = async (page, worker, sellerUrl, invUrlArr)
         findPossiblePaginationFlow.push(paginationFlow);
         continue;
       }
-      console.log(paginationFlow);
     }
     cards = [...new Set(cards)];
-    console.log(possiblePaginationUrls);
     log({file, func, worker, message:'SUCCESS | Exiting findPossiblePagination', obj:possiblePaginationUrls});
   } catch (error) {
     await log({level:'error', file, func, worker, message:'FAIL | Exiting findPossiblePagination', error});

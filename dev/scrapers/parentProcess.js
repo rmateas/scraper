@@ -42,10 +42,9 @@ const file = 'startScraper.js';
         process.exit();
       }
     } else {
-      // console.log('DEBUG logs not going to be printed');
+      console.log('DEBUG logs not going to be printed');
       process.env.HOST = 'https://as-webs-api.azurewebsites.net';
-      // process.env.WORKERS = cpus().length;
-      process.env.WORKERS = 1;
+      process.env.WORKERS = cpus().length;
     }
 
     let browsers = [];

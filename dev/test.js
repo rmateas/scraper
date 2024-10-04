@@ -2,7 +2,7 @@ import 'dotenv/config';
 import { chromium } from 'playwright-extra';
 import stealth from 'puppeteer-extra-plugin-stealth'
 
-import { postAPI } from '../utils/apiUtils.js';
+import { postAPI } from './utils/apiUtils.js';
 
 chromium.use(stealth());
 
