@@ -30,7 +30,7 @@ const getFormattedCurrentDate = () => moment(new Date()).format(moment.HTML5_FMT
  * OBJECT { level, file, func, worker, message, obj, error }
 */
 
-export const log = async (options) => {
+export default log = async (options) => {
   const levelName = getLevelName(options.level);
   if(levelName == 'info' && !process.env.DEBUG){return;}
   const message = options.message ?? 'Unidentified Error';
