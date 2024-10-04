@@ -178,9 +178,9 @@ const file = 'startScraper.js';
       try {
         log({level:'debug', file, func:'message', worker, message:'STARTING SCRAPER'});
         scraper == 'pagination' ? await getPagination(wsEndpoint, worker) :
-        // scraper == 'sinfo' ? await getSInfo(page, worker) :
-        // scraper == 'vinfo' ? await getVInfo(page, worker) :
-        // scraper == 'cards' ? await getCards(page, worker) :
+        // scraper == 'sinfo' ? await getSInfo(wsEndpoint, worker) :
+        // scraper == 'vinfo' ? await getVInfo(wsEndpoint, worker) :
+        scraper == 'cards' ? await getCards(wsEndpoint, worker) :
         log({level:'ERROR', file, func:'message', worker, message:'SPECIFY SCRAPER'});
       } catch (e) {
         log({level:'error', file, func:'message', worker, message:'ERROR GETTING CARDS', error:e});
