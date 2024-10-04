@@ -1,6 +1,6 @@
 dev/node_modules
 prod/node_modules
 dev/errorCaptures
-prod/.env
-env/.env
+dev/*.env
+prod/*.env
 .vscode
