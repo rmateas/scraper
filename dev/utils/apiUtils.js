@@ -10,7 +10,7 @@ const getAPI = async (worker, path) => {
   try {
     info = await (await fetch(path)).json();
     if(info.message != 'SUCCESS') {
-      await log({level:'error', file, func:'getAPI', worker, message:`FAIL | API ERROR | ${info.message}`, error:info.stack});
+      await log({level:'error', file, func:'getAPI', worker, message:`FAIL | API ERROR | ${info.message}`});
       // ASSIGN EXIT CODE
       process.exit()
     } else if(info.message == 'SUCCESS' && !info.data.length){

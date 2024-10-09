@@ -1,5 +1,6 @@
 //Dealer Inspire|DealerOn|template1
 
+import { chromium } from 'playwright';
 import { setTimeout } from 'node:timers/promises';
 import { performance as time } from 'perf_hooks';
 
@@ -14,18 +15,21 @@ const func = 'default';
 export default async (wsEndpoint, worker, proxy) => {
   log({file, func, worker, message:'START'});
 
+  let page;
   try {
     let browserConnect = await chromium.connect(wsEndpoint);
     let context = await browserConnect.newContext();
     page = await context.newPage();
+    log({file, func, worker, message:'CONNECTED TO BROWSER'});
   } catch (error) {
+    log({file, func, worker, message:'ERROR CONNECTING TO BROWSER: EXITING WORKER', error});
     //Set special exit code for when connecting to browser fails so that the browser can be tested
     //503 proxy error
     process.exit(503);
   }
 
   let VehCardInfoArr = [];
-  let APIData = await getAPI(worker, `${process.env.HOST}/vehicle/get/14`);
+  let APIData = await getAPI(worker, `${process.env.HOST}/vehicle/get/15`);
   
   for(let specs of APIData) {
     log({file, func, worker, message:`Current url: ${specs.url}`});
@@ -33,7 +37,7 @@ export default async (wsEndpoint, worker, proxy) => {
     let time1 = time.now();
     try {
       await pageNav(page, worker, specs.url);
-      await page.addScriptTag({path: './sharedSnips/template/browserFunctions.js'});
+      await page.addScriptTag({path: './utils/browserFunctions.js'});
       
       let getSpecs = await getVehInfo(page, worker, specs);
       let getSpecsKeys = Object.keys(getSpecs.carSpecs);
@@ -51,9 +55,9 @@ export default async (wsEndpoint, worker, proxy) => {
       VehCardInfoArr.push(specs);
       let time2 = time.now();
       if((time2 - time1) < 7000){
-        await setTimeout((Math.random()*1000)+ (7000 - (time2 - time1)));
+        await setTimeout((Math.random()*1000) + (7000 - (time2 - time1)));
       }
     }
   }
-  await postAPI(worker, `${qp.host}/vehicle/update`, JSON.stringify(VehCardInfoArr));
+  await postAPI(worker, `${process.env.HOST}/vehicle/update`, JSON.stringify(VehCardInfoArr));
 };

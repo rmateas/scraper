@@ -106,7 +106,8 @@ const file = 'startScraper.js';
     let checkWorkers = async () => {
       log({level:'debug', file, func:'checkWorkers', message:'START'});
       try {
-        let len = await (await fetch(`${process.env.HOST}/seller/arrlen/${scraper}`)).json();
+        let isSeller = scraper == 'vinfo' ? 'vehicle' : 'seller';
+        let len = await (await fetch(`${process.env.HOST}/${isSeller}/arrlen/${scraper}`)).json();
         if('data' in len && len.data){
           for (let i = 0; i < workers.length; i++) {
             workers[i] === undefined && await spawnWorker(i);

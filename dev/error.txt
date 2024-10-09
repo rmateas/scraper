@@ -1,0 +1,51 @@
+[ 0][   ERROR  ][2024-10-04T19:58:39][          apiUtils.js         ][            postAPI           ]: FAIL | API ERROR | POST
+  TypeError: fetch failed
+    at node:internal/deps/undici/undici:13737:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async postAPI (file:///home/websoffice1/ws/scraper/dev/utils/apiUtils.js:31:5)
+    at async writeToDB (file:///home/websoffice1/ws/scraper/dev/utils/logger/logger.js:70:3)
+    at async log (file:///home/websoffice1/ws/scraper/dev/utils/logger/logger.js:48:5)
+    at async postAPI (file:///home/websoffice1/ws/scraper/dev/utils/apiUtils.js:39:5)
+    at async writeToDB (file:///home/websoffice1/ws/scraper/dev/utils/logger/logger.js:70:3)
+    at async log (file:///home/websoffice1/ws/scraper/dev/utils/logger/logger.js:48:5)
+    at async postAPI (file:///home/websoffice1/ws/scraper/dev/utils/apiUtils.js:39:5)
+    at async writeToDB (file:///home/websoffice1/ws/scraper/dev/utils/logger/logger.js:70:3) {
+  [cause]: Error: connect ECONNREFUSED 20.115.232.12:443
+      at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1605:16)
+      at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17) {
+    errno: -111,
+    code: 'ECONNREFUSED',
+    syscall: 'connect',
+    address: '20.115.232.12',
+    port: 443
+  }
+}
+[ 0][   ERROR  ][2024-10-04T19:58:39][          apiUtils.js         ][            postAPI           ]: FAIL | API ERROR | POST
+  TypeError: fetch failed
+    at node:internal/deps/undici/undici:13737:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async postAPI (file:///home/websoffice1/ws/scraper/dev/utils/apiUtils.js:31:5)
+    at async writeToDB (file:///home/websoffice1/ws/scraper/dev/utils/logger/logger.js:70:3)
+    at async log (file:///home/websoffice1/ws/scraper/dev/utils/logger/logger.js:48:5)
+    at async postAPI (file:///home/websoffice1/ws/scraper/dev/utils/apiUtils.js:39:5)
+    at async writeToDB (file:///home/websoffice1/ws/scraper/dev/utils/logger/logger.js:70:3)
+    at async log (file:///home/websoffice1/ws/scraper/dev/utils/logger/logger.js:48:5)
+    at async postAPI (file:///home/websoffice1/ws/scraper/dev/utils/apiUtils.js:39:5)
+    at async writeToDB (file:///home/websoffice1/ws/scraper/dev/utils/logger/logger.js:70:3) {
+  [cause]: Error: connect ECONNREFUSED 20.115.232.12:443
+      at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1605:16)
+      at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17) {
+    errno: -111,
+    code: 'ECONNREFUSED',
+    syscall: 'connect',
+    address: '20.115.232.12',
+    port: 443
+  }
+}
+Aborted (core dumped)
+npm notice
+npm notice New minor version of npm available! 10.8.1 -> 10.9.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v10.9.0
+npm notice To update run: npm install -g npm@10.9.0
+npm notice
+websoffice1@WebsOffice1:~/ws/scraper/dev$ exit
