@@ -137,7 +137,7 @@ const file = 'startScraper.js';
 
         //https://github.com/nodejs/node/issues/39854 
         //creating the worker and then immediately sending a message creates a race condition due to ESM modules being loaded asynchronously
-        worker.send({worker:workerNum, wsEndpoint:brow.wsEndpoint});
+        worker.send({worker:workerNum, wsEndpoint:brow.wsEndpoint, proxy:brow.proxy});
       });
       log({level:'debug', file, func:'spawnWorker', worker: workerNum, message:'SUCCESSFULLY STARTED WORKER'});
     }
@@ -162,7 +162,7 @@ const file = 'startScraper.js';
     process.on('message', async msg => {
       process.on('unhandledRejection', (e) => {log({level:'error', file, func:'unhandledRejection', message:'unhandledRejection', error:e})});
       process.on('uncaughtException', (e) => {log({level:'error', file, func:'uncaughtException', message:'uncaughtException', error:e})});
-      let {worker, wsEndpoint} = msg;
+      let {worker, wsEndpoint, proxy} = msg;
 
       //PLAYWRIGHT TEST
       // try {
@@ -178,10 +178,10 @@ const file = 'startScraper.js';
       //CODE EXECUTION
       try {
         log({level:'debug', file, func:'message', worker, message:'STARTING SCRAPER'});
-        scraper == 'pagination' ? await getPagination(wsEndpoint, worker) :
-        // scraper == 'sinfo' ? await getSInfo(wsEndpoint, worker) :
-        scraper == 'vinfo' ? await getVInfo(wsEndpoint, worker) :
-        // scraper == 'cards' ? await getCards(wsEndpoint, worker) :
+        scraper == 'pagination' ? await getPagination(wsEndpoint, worker, proxy) :
+        // scraper == 'sinfo' ? await getSInfo(wsEndpoint, worker, proxy) :
+        scraper == 'vinfo' ? await getVInfo(wsEndpoint, worker, proxy) :
+        // scraper == 'cards' ? await getCards(wsEndpoint, worker, proxy) :
         log({level:'ERROR', file, func:'message', worker, message:'SPECIFY SCRAPER'});
       } catch (e) {
         log({level:'error', file, func:'message', worker, message:'ERROR GETTING CARDS', error:e});

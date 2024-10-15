@@ -29,14 +29,19 @@ export default async (wsEndpoint, worker, proxy) => {
   }
 
   let VehCardInfoArr = [];
-  let APIData = await getAPI(worker, `${process.env.HOST}/vehicle/get/15`);
+  let APIData = await getAPI(worker, `${process.env.HOST}/vehicle/get/5`);
   
   for(let specs of APIData) {
     log({file, func, worker, message:`Current url: ${specs.url}`});
-  
+    
+    specs.scrape = { proxy };
     let time1 = time.now();
     try {
-      await pageNav(page, worker, specs.url);
+      let nav1 = await pageNav(page, worker, specs.url);
+      if(!nav1.status){
+        throw nav1.message;
+      }
+      
       await page.addScriptTag({path: './utils/browserFunctions.js'});
       
       let getSpecs = await getVehInfo(page, worker, specs);
@@ -48,7 +53,9 @@ export default async (wsEndpoint, worker, proxy) => {
         specs.vehInfoErrs = {errDate: new Date(), errArr:getSpecs.errArr};
       }
     } catch (error) {
-      specs.scrapeFail = {errDate: new Date(), errMessage: error.message, errStack: error.stack};
+      specs.scrape.procesErrorMessage = error.message;
+      specs.scrape.processErrorStack = error.stack;
+      specs.scrape.scrapeOutcome = 'FAIL';
       log({file, func, worker, message:`FAIL | Error at ${specs.url}`, error});
     } finally {
       log({file, func, worker, message:`Scrape Time : ${(time.now() - time1).toString().split(".")[0]}ms | Vehicle : ${specs.url}`, obj:specs});

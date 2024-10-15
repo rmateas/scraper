@@ -7,10 +7,11 @@ export default async (page, worker, vin) => {
   log({file, func, worker, message:'START'});
   let getAttr = async (attr) => {
     try {
-      return await page.evaluate((attr, vin) => {
+      return await page.evaluate((obj) => {
+        let {attr, vin} = obj;
         let attribute = document.querySelector(`[data-${attr}]:not([data-${attr}=""])[data-vin="${vin}"]`);
         return attribute ? attribute.getAttribute(`data-${attr}`) : '';
-      }, attr, vin);
+      }, {attr, vin});
     } catch (error) {
       log({file, func, worker, message:`FAIL | Error getting data attribute ${attr}`, error});
       return '';

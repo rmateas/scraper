@@ -84,7 +84,6 @@ export const getPagination = async (wsEndpoint, worker, proxy) => {
     cards: [],
     scrape:{
       scrapeDate:new Date(),
-      scrapeOutcome:'SUCCESS',
       vehNumTotal: 0,
       vehNumTotalNew: 0,
       vehNumPerPageNew: [],
@@ -116,7 +115,7 @@ export const getPagination = async (wsEndpoint, worker, proxy) => {
 
   try {
     let getPaginationNav1 = await pageNav(page, worker, seller.sellerUrl);
-    if(getPaginationNav1.status != true){
+    if(!getPaginationNav1.status){
       pagInfo.scrape.scrapeErrors.push(getPaginationNav1);
       throw {level:'fatal', file, func, worker, type:'NAV', message:getPaginationNav1.message};
     }
