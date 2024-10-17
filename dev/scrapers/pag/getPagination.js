@@ -70,7 +70,7 @@ export const getPagination = async (wsEndpoint, worker, proxy) => {
   //   qp.template ? `${apiUrl}&sellerUrl[exists]=true&sellerTemplate=${qp.template}` :
   //   `${apiUrl}&sellerUrl[exists]=true`;
 
-  let seller = (await getAPI(worker, `${process.env.HOST}/seller/getpag`))[0];
+  let seller = (await getAPI(worker, `${process.env.HOST}/pagination/get`))[0];
   // let seller = (await getAPI(worker, `${process.env.HOST}/seller/get?select=-scrape&sellerId=10003219`))[0];
 
   let pagInfo = {
@@ -188,6 +188,6 @@ export const getPagination = async (wsEndpoint, worker, proxy) => {
   } finally {
     log({file, func, worker, message:'Completed pagination info', obj:pagInfo});
     process.env.SCREENSHOT && await page.screenshot({path: `errorCaptures/${(new Date()).getMinutes()}${seller.sellerUrl.replace(/https:\/\/www./,'')}.png`, fullPage: true});
-    await postAPI(worker, `${process.env.HOST}/seller/updatepag`, JSON.stringify(pagInfo));
+    await postAPI(worker, `${process.env.HOST}/pagination/update`, JSON.stringify(pagInfo));
   }
 }

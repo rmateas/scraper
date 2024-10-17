@@ -106,8 +106,7 @@ const file = 'startScraper.js';
     let checkWorkers = async () => {
       log({level:'debug', file, func:'checkWorkers', message:'START'});
       try {
-        let isSeller = scraper == 'vinfo' ? 'vehicle' : 'seller';
-        let len = await (await fetch(`${process.env.HOST}/${isSeller}/arrlen/${scraper}`)).json();
+        let len = await (await fetch(`${process.env.HOST}/${scraper}/arrlen`)).json();
         if('data' in len && len.data){
           for (let i = 0; i < workers.length; i++) {
             workers[i] === undefined && await spawnWorker(i);
@@ -179,12 +178,12 @@ const file = 'startScraper.js';
       try {
         log({level:'debug', file, func:'message', worker, message:'STARTING SCRAPER'});
         scraper == 'pagination' ? await getPagination(wsEndpoint, worker, proxy) :
-        // scraper == 'sinfo' ? await getSInfo(wsEndpoint, worker, proxy) :
-        scraper == 'vinfo' ? await getVInfo(wsEndpoint, worker, proxy) :
+        // scraper == 'seller' ? await getSInfo(wsEndpoint, worker, proxy) :
+        scraper == 'vehicle' ? await getVInfo(wsEndpoint, worker, proxy) :
         // scraper == 'cards' ? await getCards(wsEndpoint, worker, proxy) :
         log({level:'ERROR', file, func:'message', worker, message:'SPECIFY SCRAPER'});
       } catch (e) {
-        log({level:'error', file, func:'message', worker, message:'ERROR GETTING CARDS', error:e});
+        log({level:'error', file, func:'message', worker, message:'SCRAPER ERROR', error:e});
       } finally {
         log({level:'debug', file, func:'message', worker, message:'EXITING CHILD PROCESS'});
         process.exit();

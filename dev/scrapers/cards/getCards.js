@@ -18,7 +18,7 @@ export const getCards = async (wsEndpoint, worker, proxy) => {
   }
 
 
-  for(let seller of await getAPI(`${process.env.HOST}/seller/getcards`)){
+  for(let seller of await getAPI(`${process.env.HOST}/cards/get`)){
     let cards = {
       sellerId:seller.sellerId,
       sellerTemplate:seller.sellerTemplate,
@@ -52,7 +52,7 @@ export const getCards = async (wsEndpoint, worker, proxy) => {
       cards.scraped.scrapeOutcome = 'FAIL';
     }finally {
       log({file, func:'getCards', worker, message:`SCRAPING CARDS END | Total cards found: ${cards.vehCardUrlArr.length}`});
-      await postAPI(`${process.env.HOST}/vehicle/insert`, JSON.stringify(cards));
+      await postAPI(`${process.env.HOST}/cards/insert`, JSON.stringify(cards));
     }
   }
 }
