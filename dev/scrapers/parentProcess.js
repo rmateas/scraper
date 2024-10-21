@@ -107,7 +107,7 @@ const file = 'startScraper.js';
       log({level:'debug', file, func:'checkWorkers', message:'START'});
       try {
         let len = await (await fetch(`${process.env.HOST}/${scraper}/arrlen`)).json();
-        if('data' in len && len.data){
+        if(len.data){
           for (let i = 0; i < workers.length; i++) {
             workers[i] === undefined && await spawnWorker(i);
           }
@@ -119,8 +119,8 @@ const file = 'startScraper.js';
           await setTimeout(600000);
           await checkWorkers();
         }
-      } catch (e) {
-        log({level:'error', file, func:'checkWorkers', message:'ERROR CHECKING WORKERS', error:e});
+      } catch (error) {
+        await log({level:'error', file, func:'checkWorkers', message:'ERROR CHECKING WORKERS', error});
         await setTimeout(1800000);
         await checkWorkers();
       }
@@ -180,10 +180,10 @@ const file = 'startScraper.js';
         scraper == 'pagination' ? await getPagination(wsEndpoint, worker, proxy) :
         // scraper == 'seller' ? await getSInfo(wsEndpoint, worker, proxy) :
         scraper == 'vehicle' ? await getVInfo(wsEndpoint, worker, proxy) :
-        // scraper == 'cards' ? await getCards(wsEndpoint, worker, proxy) :
+        scraper == 'cards' ? await getCards(wsEndpoint, worker, proxy) :
         log({level:'ERROR', file, func:'message', worker, message:'SPECIFY SCRAPER'});
-      } catch (e) {
-        log({level:'error', file, func:'message', worker, message:'SCRAPER ERROR', error:e});
+      } catch (error) {
+        await log({level:'error', file, func:'message', worker, message:'SCRAPER ERROR', error});
       } finally {
         log({level:'debug', file, func:'message', worker, message:'EXITING CHILD PROCESS'});
         process.exit();
