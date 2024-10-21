@@ -66,10 +66,7 @@ const writeToConsole = (levelName, file, func, worker, message, obj = null, erro
 }
 
 const writeToDB = async (scraper, level, message, error) => {
-  // Live API
-  await postAPI(0, `${process.env.HOST}/error/posterror`, JSON.stringify({scraper, level, message, error:error, date: getFormattedCurrentDate()}));
-  // Local
-  // await postAPI(`http://localhost:8080/error/posterror`, JSON.stringify({scraper, level, message, error:error.stack, date: getFormattedCurrentDate()}))
+  await postAPI(0, `${process.env.HOST}/error/posterror`, JSON.stringify({scraper, level, message, error:error.stack, date: getFormattedCurrentDate()}));
 }
 
 
