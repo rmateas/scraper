@@ -19,18 +19,21 @@ export const getCardsFromDealer =  async (page, worker, seller, isNewInv) => {
     do {
       oldUrlLen = vehCardArr.length;
       startIndex += seller.pageIterator;
-      let navResult = await pageNav(page, invUrl.replace(/~~~/, startIndex));
+      let navResult = await pageNav(page, worker, invUrl.replace(/~~~/, startIndex));
       if(!navResult.status){
-        vehCardsPerPageArr.push({url: navResult.url, cards: 0, error: navResult.message});
+        vehCardsPerPageArr.push({url: navResult.url, cardsOnPage: 0, error: navResult.message});
         log({level:'error', file, func:'getCardsUni', worker, message:'FAIL NAV', error: navResult.message});
-        oldUrlLen--;
         continue;
       }
       let cards = await getVehCardUrls(page, worker);
-      vehCardArr.push.apply(vehCardArr, cards);
+      if (cards.error) {
+        log({level:'warn', file, func:'getCardsUni', worker, message:'ERROR GETTING CARDS FROM DEALER', error:cards.error});
+        continue;
+      }
+      vehCardArr.push.apply(vehCardArr, cards.cards);
       vehCardArr = [...new Set(vehCardArr)];
       newUrlLen = vehCardArr.length;
-      vehCardsPerPageArr.push({url: navResult.url, cardsOnPage: cards.length});
+      vehCardsPerPageArr.push({url: navResult.url, cardsOnPage: cards.cards.length, error:null});
     } while (oldUrlLen != newUrlLen);
     log({file, func:'getCardsUni', worker, message:'SUCCESS'});
   }
@@ -55,14 +58,19 @@ export const getCardsFromDealer =  async (page, worker, seller, isNewInv) => {
       while (!(await page.$('[aria-label="Next"].disabled'))) {
         oldUrlLeng = vehCardArr.length;
         let cards = await getVehCardUrls(page, worker);
-        vehCardArr.push.apply(vehCardArr, cards);
+        if (cards.error) {
+          log({level:'warn', file, func:'getCardsUni', worker, message:'ERROR GETTING CARDS FROM DEALER', error:cards.error});
+          continue;
+        }
+        vehCardArr.push.apply(vehCardArr, cards.cards);
         vehCardArr = [...new Set(vehCardArr)];
-        vehCardsPerPageArr.push({url: invUrl.replace(/~~~/, nextPageObj.value), cardsOnPage: cards.length});
+        vehCardsPerPageArr.push({url: invUrl.replace(/~~~/, nextPageObj.value), cardsOnPage: cards.cards.length, error:null});
         await page.evaluate(nextPageObj => {window.changePage(nextPageObj)}, nextPageObj);
         await setTimeout(3000);
         nextPageObj.value++;
       }
     } catch (error) {
+      vehCardsPerPageArr.push({url: invUrl.replace(/~~~/, nextPageObj.value), cardsOnPage: cards.length, error});
       await log({level:'error', file, func:'getCardsTemp3', worker, message:'ERROR FINDING THE END OF PAGINATION', error});
     }
     let lastPageCards = await getVehCardUrls(page, worker);
@@ -74,7 +82,8 @@ export const getCardsFromDealer =  async (page, worker, seller, isNewInv) => {
 
 
   //***** Execution *****//
-  let mainNavResult = await pageNav(page, invUrl.replace(/~~~/, startIndex));
+  
+  let mainNavResult = await pageNav(page, worker, invUrl.replace(/~~~/, startIndex));
   if(!mainNavResult.status){
     vehCardsPerPageArr.push({url: mainNavResult.url, cards: 0, error: mainNavResult.message});
     log({level:'error', file, func:'getCardsUni', worker, message:'FAIL NAV', error: navResult.message});

@@ -27,7 +27,11 @@ export const getVehCardUrls = async (page, worker) => {
     getCards.error = {level:'error', file, func, worker, type:'CONTENT', message:'Error getting card urls', error};
     return getCards;
   }
-  console.log(allHrefs);
+  
+  
+  // console.log(allHrefs);
+
+  
   // template3 Specific Exclusion : \?mode
   let rejectUrlRx = /google|facebook|youtube|video|gallery|modal|^javascript|^#|^tel|\?mode|\?ai_(slide_show|ask_about)|comparison/i;
   let acceptUrlRx = /\/inventory\/|new|used|19[5-9]\d|20[0-3]\d/;
