@@ -4,3 +4,4 @@ dev/errorCaptures
 dev/*.env
 prod/*.env
 .vscode
+*/waitingForDB.json
