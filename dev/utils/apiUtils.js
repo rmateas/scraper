@@ -1,4 +1,8 @@
+import fs from 'fs';
+
 import { setTimeout } from 'node:timers/promises';
+
+
 
 import log from './logger/logger.js';
 
@@ -25,21 +29,27 @@ const getAPI = async (worker, path) => {
   return info.data;
 }
 
-const postAPI = async (worker, path, info) => {
+const postAPI = async (worker, path, info, attempt=0) => {
   log({file, func:'postAPI', worker, message:`POSTING TO: ${path}`});
-  try {
-    await fetch(path, {
-      method:'POST',
-      body:info,
-      headers:{
-        'Content-type': 'application/json; charset=UTF-8'
-      }
-    });
-  } catch (error) {
-    await log({level:'error', file, func:'postAPI', worker, message:`FAIL | API ERROR | POST`, error});
-    await setTimeout(5000);
-    await postAPI(worker, path, info);
+  let content = {
+    method: "POST",
+    body: info,
+    headers: { "Content-type": "application/json; charset=UTF-8" }
+  };
+
+  if(attempt > 1){
+    fs.appendFileSync('./waitingForDB.json', JSON.stringify({path, content}))
+    return;
   }
+  
+  try {
+    await fetch(path, content);
+  } catch (error) {
+    await log({level:'warn', file, func:'postAPI', worker, message:`FAIL | API ERROR | POST`, error});
+    await setTimeout(5000);
+    await postAPI(worker, path, info, attempt+1);
+  }
+  
 }
 
 export { getAPI, postAPI }
